@@ -10,7 +10,7 @@ class ParentDashboardScreen extends StatelessWidget {
       body: SafeArea(child: CustomScrollView(slivers: [
         SliverToBoxAdapter(child: Padding(
           padding: const EdgeInsets.fromLTRB(20,18,20,0),
-          child: Row(children: [
+          child: Row(children:[
             Container(width:42,height:42,
               decoration: const BoxDecoration(color:AppColors.accentOrange,shape:BoxShape.circle),
               child: const Icon(Icons.person,color:Colors.white,size:24)),
@@ -23,7 +23,6 @@ class ParentDashboardScreen extends StatelessWidget {
           ])),
         )),
         const SliverToBoxAdapter(child:SizedBox(height:18)),
-        // Student card
         SliverToBoxAdapter(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal:20),
           child: Container(padding:const EdgeInsets.all(16),
@@ -43,7 +42,6 @@ class ParentDashboardScreen extends StatelessWidget {
             ]))),
         )),
         const SliverToBoxAdapter(child:SizedBox(height:18)),
-        // Current focus
         SliverToBoxAdapter(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal:20),
           child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -65,36 +63,8 @@ class ParentDashboardScreen extends StatelessWidget {
               ])),
           ]))),
         const SliverToBoxAdapter(child:SizedBox(height:18)),
-        // Screen time
-        SliverToBoxAdapter(child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal:20),
-          child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[
-              Text('Screen Time Activity',style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize:16)),
-              Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:4),
-                decoration:BoxDecoration(color:AppColors.primaryLight,borderRadius:BorderRadius.circular(8)),
-                child:const Text('+12%',style:TextStyle(fontSize:11,fontWeight:FontWeight.w700,color:AppColors.primary))),
-            ]),
-            const SizedBox(height:8),
-            Text('5.2 hrs',style:Theme.of(context).textTheme.headlineLarge),
-            const SizedBox(height:12),
-            SizedBox(height:80,child:Row(
-              crossAxisAlignment:CrossAxisAlignment.end,
-              mainAxisAlignment:MainAxisAlignment.spaceBetween,
-              children:['M','T','W','T','F','S','S'].asMap().entries.map((e){
-                final vals=[0.4,0.7,0.9,0.6,0.8,1.0,0.5];
-                return Column(mainAxisAlignment:MainAxisAlignment.end,children:[
-                  Container(width:32,height:64*vals[e.key],
-                    decoration:BoxDecoration(
-                      color:e.key==5?AppColors.accentOrange:AppColors.accentOrange.withOpacity(0.28),
-                      borderRadius:BorderRadius.circular(6))),
-                  const SizedBox(height:4),
-                  Text(e.value,style:const TextStyle(fontSize:10,color:AppColors.textHint)),
-                ]);
-              }).toList())),
-          ]))),
+        SliverToBoxAdapter(child: _ScreenTime()),
         const SliverToBoxAdapter(child:SizedBox(height:18)),
-        // Recent badges
         SliverToBoxAdapter(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal:20),
           child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -107,46 +77,86 @@ class ParentDashboardScreen extends StatelessWidget {
             ]),
           ]))),
         const SliverToBoxAdapter(child:SizedBox(height:18)),
-        // Content controls
         SliverToBoxAdapter(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal:20),
           child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
             Text('Content Controls',style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize:16)),
             const SizedBox(height:12),
-            Container(decoration:BoxDecoration(color:AppColors.surface,borderRadius:BorderRadius.circular(16)),
+            Container(
+              decoration:BoxDecoration(color:AppColors.surface,borderRadius:BorderRadius.circular(16)),
               child:Column(children:[
-                SwitchListTile(secondary:const Icon(Icons.menu_book_outlined,color:AppColors.accentBlue),
+                SwitchListTile(
+                  secondary:const Icon(Icons.menu_book_outlined,color:AppColors.accentBlue),
                   title:const Text('Digital Literacy Basics',style:TextStyle(fontSize:14,fontWeight:FontWeight.w600)),
                   subtitle:const Text('Enable access to core modules',style:TextStyle(fontSize:12)),
-                  value:true,onChanged:(_){},activeColor:AppColors.primary),
+                  value:true, onChanged:(_){},
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: AppColors.primary),
                 const Divider(height:1,indent:56),
-                SwitchListTile(secondary:const Icon(Icons.security,color:AppColors.accentOrange),
+                SwitchListTile(
+                  secondary:const Icon(Icons.security,color:AppColors.accentOrange),
                   title:const Text('Internet Safety Quiz',style:TextStyle(fontSize:14,fontWeight:FontWeight.w600)),
                   subtitle:const Text('Require 100% to proceed',style:TextStyle(fontSize:12)),
-                  value:false,onChanged:(_){},activeColor:AppColors.primary),
+                  value:false, onChanged:(_){},
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: AppColors.primary),
               ])),
           ]))),
         const SliverToBoxAdapter(child:SizedBox(height:18)),
         SliverToBoxAdapter(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal:20),
-          child:ElevatedButton.icon(onPressed:(){},
+          child:ElevatedButton.icon(
+            onPressed:(){},
             icon:const Icon(Icons.bar_chart,size:16),
             label:const Text('View Full Activity Report'),
-            style:ElevatedButton.styleFrom(backgroundColor:AppColors.accentOrange,
-                minimumSize:const Size(double.infinity,52))))),
+            style:ElevatedButton.styleFrom(
+              backgroundColor:AppColors.accentOrange,
+              minimumSize:const Size(double.infinity,52))))),
         const SliverToBoxAdapter(child:SizedBox(height:40)),
       ])),
       bottomNavigationBar: Container(
-        decoration:const BoxDecoration(border:Border(top:BorderSide(color:AppColors.border))),
-        child:SafeArea(child:SizedBox(height:64,child:Row(
+        decoration: const BoxDecoration(border:Border(top:BorderSide(color:AppColors.border))),
+        child: SafeArea(child: SizedBox(height:64,child: Row(
           mainAxisAlignment:MainAxisAlignment.spaceAround,
-          children:const[
-            _Nav(Icons.home,'Home',true,AppColors.accentOrange),
-            _Nav(Icons.menu_book_outlined,'Lessons',false,AppColors.accentOrange),
-            _Nav(Icons.message_outlined,'Messages',false,AppColors.accentOrange),
-            _Nav(Icons.settings_outlined,'Account',false,AppColors.accentOrange),
+          children: const [
+            _NavItem(Icons.home,'Home',true,AppColors.accentOrange),
+            _NavItem(Icons.menu_book_outlined,'Lessons',false,AppColors.accentOrange),
+            _NavItem(Icons.message_outlined,'Messages',false,AppColors.accentOrange),
+            _NavItem(Icons.settings_outlined,'Account',false,AppColors.accentOrange),
           ])))),
     );
+  }
+}
+
+class _ScreenTime extends StatelessWidget {
+  final _days = const ['M','T','W','T','F','S','S'];
+  final _vals = const [0.4,0.7,0.9,0.6,0.8,1.0,0.5];
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal:20),
+      child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[
+          Text('Screen Time Activity',style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize:16)),
+          Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:4),
+            decoration:BoxDecoration(color:AppColors.primaryLight,borderRadius:BorderRadius.circular(8)),
+            child:const Text('+12%',style:TextStyle(fontSize:11,fontWeight:FontWeight.w700,color:AppColors.primary))),
+        ]),
+        const SizedBox(height:8),
+        Text('5.2 hrs',style:Theme.of(context).textTheme.headlineLarge),
+        const SizedBox(height:12),
+        SizedBox(height:80,child:Row(
+          crossAxisAlignment:CrossAxisAlignment.end,
+          mainAxisAlignment:MainAxisAlignment.spaceBetween,
+          children:List.generate(7,(i)=>Column(mainAxisAlignment:MainAxisAlignment.end,children:[
+            Container(width:32,height:64*_vals[i],
+              decoration:BoxDecoration(
+                color:i==5?AppColors.accentOrange:AppColors.accentOrange.withValues(alpha:0.28),
+                borderRadius:BorderRadius.circular(6))),
+            const SizedBox(height:4),
+            Text(_days[i],style:const TextStyle(fontSize:10,color:AppColors.textHint)),
+          ])))),
+      ]));
   }
 }
 
@@ -154,20 +164,26 @@ class _BChip extends StatelessWidget {
   final String label; final IconData icon; final Color color;
   const _BChip(this.label,this.icon,this.color);
   @override
-  Widget build(BuildContext context)=>Expanded(child:Container(
+  Widget build(BuildContext context) => Expanded(child:Container(
     margin:const EdgeInsets.only(right:8),padding:const EdgeInsets.all(12),
-    decoration:BoxDecoration(color:color.withOpacity(0.1),borderRadius:BorderRadius.circular(12),
-        border:Border.all(color:color.withOpacity(0.3))),
-    child:Column(children:[Icon(icon,color:color,size:26),const SizedBox(height:6),
-      Text(label,textAlign:TextAlign.center,style:TextStyle(fontSize:10,fontWeight:FontWeight.w600,color:color))])));
+    decoration:BoxDecoration(color:color.withValues(alpha:0.1),borderRadius:BorderRadius.circular(12),
+        border:Border.all(color:color.withValues(alpha:0.3))),
+    child:Column(children:[
+      Icon(icon,color:color,size:26),const SizedBox(height:6),
+      Text(label,textAlign:TextAlign.center,
+          style:TextStyle(fontSize:10,fontWeight:FontWeight.w600,color:color)),
+    ])));
 }
 
-class _Nav extends StatelessWidget {
+class _NavItem extends StatelessWidget {
   final IconData icon; final String label; final bool active; final Color ac;
-  const _Nav(this.icon,this.label,this.active,this.ac);
+  const _NavItem(this.icon,this.label,this.active,this.ac);
   @override
-  Widget build(BuildContext context)=>Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-    Icon(icon,color:active?ac:AppColors.textHint,size:22),const SizedBox(height:2),
-    Text(label,style:TextStyle(fontSize:10,color:active?ac:AppColors.textHint,
-        fontWeight:active?FontWeight.w600:FontWeight.w400))]);
+  Widget build(BuildContext context) => Column(mainAxisAlignment:MainAxisAlignment.center,children:[
+    Icon(icon,color:active?ac:AppColors.textHint,size:22),
+    const SizedBox(height:2),
+    Text(label,style:TextStyle(fontSize:10,
+      color:active?ac:AppColors.textHint,
+      fontWeight:active?FontWeight.w600:FontWeight.w400)),
+  ]);
 }

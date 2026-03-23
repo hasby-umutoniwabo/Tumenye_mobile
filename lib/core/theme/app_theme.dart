@@ -87,7 +87,7 @@ abstract class AppTheme {
           .apply(bodyColor: AppColors.textPrimary, displayColor: AppColors.textPrimary),
       elevatedButtonTheme: _btn,
       inputDecorationTheme: _input(),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -121,7 +121,7 @@ abstract class AppTheme {
           .apply(bodyColor: AppColors.darkText, displayColor: AppColors.darkText),
       elevatedButtonTheme: _btn,
       inputDecorationTheme: _input(dark: true),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.darkCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
