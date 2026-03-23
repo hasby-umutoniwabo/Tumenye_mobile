@@ -29,7 +29,13 @@ class MainScaffold extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
           border: const Border(top: BorderSide(color: AppColors.border)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 16, offset: const Offset(0, -4))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
         child: SafeArea(
           child: SizedBox(
@@ -52,15 +58,21 @@ class MainScaffold extends StatelessWidget {
                             color: on ? AppColors.primaryLight : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Icon(on ? t.active : t.icon, size: 22,
-                              color: on ? AppColors.primary : AppColors.textHint),
+                          child: Icon(
+                            on ? t.active : t.icon,
+                            size: 22,
+                            color: on ? AppColors.primary : AppColors.textHint,
+                          ),
                         ),
                         const SizedBox(height: 2),
-                        Text(t.label,
-                            style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: on ? FontWeight.w600 : FontWeight.w400,
-                                color: on ? AppColors.primary : AppColors.textHint)),
+                        Text(
+                          t.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: on ? FontWeight.w600 : FontWeight.w400,
+                            color: on ? AppColors.primary : AppColors.textHint,
+                          ),
+                        ),
                       ],
                     ),
                   ),

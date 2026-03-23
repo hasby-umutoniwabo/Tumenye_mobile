@@ -20,7 +20,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen>
     with SingleTickerProviderStateMixin {
-  int _page = 0;
+  final int _page = 0;
   late final AnimationController _ctrl;
   late final Animation<double> _fade;
   late final Animation<Offset> _slide;
@@ -28,7 +28,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 700));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
     _slide = Tween(begin: const Offset(0, 0.12), end: Offset.zero)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
@@ -36,7 +37,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +57,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 children: [
                   const SizedBox(height: 24),
                   Text('TUMENYE',
-                      style: Theme.of(context).textTheme.headlineLarge
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineLarge
                           ?.copyWith(letterSpacing: 4)),
                   const SizedBox(height: 28),
                   Expanded(child: _HeroCard()),
@@ -63,28 +69,41 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     child: Column(
                       key: ValueKey(_page),
                       children: [
-                        Text(_slides[_page].title,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(height: 1.3)),
+                        Text(
+                          _slides[_page].title,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(height: 1.3),
+                        ),
                         const SizedBox(height: 12),
-                        Text(_slides[_page].body,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium),
+                        Text(
+                          _slides[_page].body,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_slides.length, (i) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: i == _page ? 24 : 8, height: 8,
-                      decoration: BoxDecoration(
-                        color: i == _page ? AppColors.primary : AppColors.border,
-                        borderRadius: BorderRadius.circular(4)),
-                    )),
+                    children: List.generate(
+                      _slides.length,
+                      (i) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: i == _page ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: i == _page
+                              ? AppColors.primary
+                              : AppColors.border,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 28),
                   ElevatedButton(
@@ -100,8 +119,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       GestureDetector(
                         onTap: () => context.go(AppRoutes.login),
                         child: const Text('Log In',
-                            style: TextStyle(fontSize: 14,
-                                fontWeight: FontWeight.w700, color: AppColors.primary)),
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary)),
                       ),
                     ],
                   ),
@@ -122,34 +143,48 @@ class _HeroCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-          color: AppColors.primaryLight, borderRadius: BorderRadius.circular(28)),
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(28)),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Positioned(top: 24, right: 28,
-              child: _Dot(60, AppColors.primary.withOpacity(0.18))),
-          Positioned(bottom: 36, left: 28,
-              child: _Dot(40, AppColors.accentBlue.withOpacity(0.14))),
-          Positioned(top: 60, left: 16,
-              child: _Dot(20, AppColors.accentYellow.withOpacity(0.2))),
+          Positioned(
+              top: 24,
+              right: 28,
+              child: _Dot(60, AppColors.primary.withValues(alpha: 0.18))),
+          Positioned(
+              bottom: 36,
+              left: 28,
+              child: _Dot(40, AppColors.accentBlue.withValues(alpha: 0.14))),
+          Positioned(
+              top: 60,
+              left: 16,
+              child: _Dot(20, AppColors.accentYellow.withValues(alpha: 0.2))),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
+            padding:
+                const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 130, height: 90,
+                  width: 130,
+                  height: 90,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
-                        blurRadius: 24, offset: const Offset(0, 10))],
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.laptop_mac, size: 52, color: AppColors.primary),
+                  child: const Icon(Icons.laptop_mac,
+                      size: 52, color: AppColors.primary),
                 ),
                 const SizedBox(height: 24),
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _Avatar(AppColors.accentOrange, 0),
@@ -167,25 +202,32 @@ class _HeroCard extends StatelessWidget {
 }
 
 class _Dot extends StatelessWidget {
-  final double size; final Color color;
+  final double size;
+  final Color color;
   const _Dot(this.size, this.color);
   @override
-  Widget build(BuildContext context) =>
-      Container(width: size, height: size,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+  Widget build(BuildContext context) => Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 }
 
 class _Avatar extends StatelessWidget {
-  final Color color; final double offset;
+  final Color color;
+  final double offset;
   const _Avatar(this.color, this.offset);
   @override
   Widget build(BuildContext context) => Container(
-    margin: EdgeInsets.only(left: offset < 0 ? offset.abs() : 0),
-    width: 46, height: 46,
-    decoration: BoxDecoration(color: color, shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2.5)),
-    child: const Icon(Icons.person, color: Colors.white, size: 24),
-  );
+        margin: EdgeInsets.only(left: offset < 0 ? offset.abs() : 0),
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2.5),
+        ),
+        child: const Icon(Icons.person, color: Colors.white, size: 24),
+      );
 }
 
 class _Slide {
