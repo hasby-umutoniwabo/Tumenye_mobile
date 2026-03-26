@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/router/app_router.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/preferences_providers.dart';
+import '../../../../core/services/image_upload_service.dart';
 import '../../../../shared/widgets/icon_box.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -11,11 +13,13 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final offline = ref.watch(offlineModeProvider);
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName ?? user?.email?.split('@').first ?? 'User';
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
           child: CustomScrollView(slivers: [
-        SliverToBoxAdapter(child: _Header()),
+        SliverToBoxAdapter(child: _Header(displayName: displayName, ref: ref)),
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
         SliverToBoxAdapter(
             child: Padding(
@@ -68,9 +72,11 @@ class ProfileScreen extends ConsumerWidget {
                             onPressed: () => Navigator.pop(ctx),
                             child: const Text('Cancel')),
                         ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(ctx);
-                              context.go(AppRoutes.welcome);
+                              await ref
+                                  .read(authServiceProvider)
+                                  .signOut();
                             },
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.accentRed),
@@ -94,9 +100,38 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerStatefulWidget {
+  final String displayName;
+  final WidgetRef ref;
+  const _Header({required this.displayName, required this.ref});
+
+  @override
+  ConsumerState<_Header> createState() => _HeaderState();
+}
+
+class _HeaderState extends ConsumerState<_Header> {
+  bool _uploading = false;
+
+  Future<void> _changeAvatar() async {
+    setState(() => _uploading = true);
+    try {
+      await ImageUploadService().pickAndUploadAvatar();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Upload failed: $e'),
+          backgroundColor: AppColors.accentRed,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final avatarUrl = ref.watch(currentUserStreamProvider).valueOrNull?.avatarUrl;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(children: [
@@ -109,41 +144,97 @@ class _Header extends StatelessWidget {
           const SizedBox(width: 20),
         ]),
         const SizedBox(height: 24),
-        Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-                color: AppColors.accentOrange,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 3)),
-            child: const Icon(Icons.person, color: Colors.white, size: 46)),
+
+        // ── Avatar with edit overlay ───────────────────────────────────
+        GestureDetector(
+          onTap: _uploading ? null : _changeAvatar,
+          child: Stack(
+            children: [
+              // Avatar circle
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 3)),
+                child: ClipOval(
+                  child: avatarUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: avatarUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            color: AppColors.accentOrange,
+                            child: const Center(
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white)),
+                          ),
+                          errorWidget: (_, __, ___) => _InitialsAvatar(
+                              name: widget.displayName),
+                        )
+                      : _InitialsAvatar(name: widget.displayName),
+                ),
+              ),
+              // Upload loading overlay
+              if (_uploading)
+                Positioned.fill(
+                  child: ClipOval(
+                    child: Container(
+                      color: Colors.black45,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              // Camera icon badge
+              if (!_uploading)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 26,
+                    height: 26,
+                    decoration: const BoxDecoration(
+                        color: AppColors.primary, shape: BoxShape.circle),
+                    child: const Icon(Icons.camera_alt,
+                        color: Colors.white, size: 14),
+                  ),
+                ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: 12),
-        Text('Emmanuel Nkurunziza',
+        Text(widget.displayName,
             style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 6),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(20)),
-              child: const Text('Level 4',
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white))),
-          const SizedBox(width: 8),
-          const Text('Fluent Reader',
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary)),
-        ]),
         const SizedBox(height: 4),
-        Text('Kigali, Rwanda',
-            style: Theme.of(context).textTheme.bodySmall),
+        Text('Tap your photo to change it',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: AppColors.textHint)),
       ]),
+    );
+  }
+}
+
+class _InitialsAvatar extends StatelessWidget {
+  final String name;
+  const _InitialsAvatar({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    return Container(
+      color: AppColors.accentOrange,
+      child: Center(
+        child: Text(initial,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 36,
+                fontWeight: FontWeight.w800)),
+      ),
     );
   }
 }

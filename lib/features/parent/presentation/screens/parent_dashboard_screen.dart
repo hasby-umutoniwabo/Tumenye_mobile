@@ -1,413 +1,290 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/providers/firestore_providers.dart';
+import '../../../../core/models/module_model.dart';
+import '../../../../core/models/progress_model.dart';
+import '../../../../core/models/user_model.dart';
+import '../../../../core/services/firestore_service.dart';
+import 'parent_child_detail_screen.dart';
 
-class ParentDashboardScreen extends StatelessWidget {
+class ParentDashboardScreen extends ConsumerWidget {
   const ParentDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = FirebaseAuth.instance.currentUser;
+    final parentName = user?.displayName?.split(' ').first ??
+        user?.email?.split('@').first ??
+        'Parent';
+
+    final childrenAsync = ref.watch(linkedChildrenProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
+            // ── Header ──────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: const BoxDecoration(
-                          color: AppColors.accentOrange,
-                          shape: BoxShape.circle),
-                      child: const Icon(Icons.person,
-                          color: Colors.white, size: 24),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Kalisa',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      color: AppColors.textSecondary)),
-                          Text('Parent Dashboard',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                      fontWeight: FontWeight.w700)),
-                        ],
+                child: Row(children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: const BoxDecoration(
+                        color: AppColors.accentOrange, shape: BoxShape.circle),
+                    child: Center(
+                      child: Text(
+                        parentName[0].toUpperCase(),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700),
                       ),
                     ),
-                    const Icon(Icons.notifications_outlined, size: 24),
-                  ],
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 18)),
-            // Student progress card
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16)),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: const BoxDecoration(
-                            color: AppColors.accentBlue,
-                            shape: BoxShape.circle),
-                        child: const Icon(Icons.child_care,
-                            color: Colors.white, size: 28),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Kalisa's Progress",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(
-                                        fontWeight: FontWeight.w700)),
-                            Text(
-                                'Got 70% of Word module completed.',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(20)),
-                        child: const Text('ACTIVE NOW',
-                            style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 0.4)),
-                      ),
-                    ],
                   ),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 18)),
-            // Current focus
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Current Focus',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontSize: 16)),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Microsoft Word',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(
-                                          fontWeight: FontWeight.w700)),
-                              const Text('70%',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.primary)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const ClipRRect(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(4)),
-                            child: LinearProgressIndicator(
-                              value: 0.70,
-                              minHeight: 8,
-                              backgroundColor: AppColors.border,
-                              valueColor: AlwaysStoppedAnimation(
-                                  AppColors.primary),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                              'Next: Advanced Formatting • 4/6 lessons',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 18)),
-            // Screen time
-            SliverToBoxAdapter(child: _ScreenTime()),
-            const SliverToBoxAdapter(child: SizedBox(height: 18)),
-            // Recent badges
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Recent Badges',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontSize: 16)),
-                    const SizedBox(height: 12),
-                    const Row(
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _BChip('Typing Pro', Icons.keyboard,
-                            AppColors.accentYellow),
-                        _BChip('Safety Hero', Icons.shield,
-                            AppColors.accentBlue),
-                        _BChip('7 Day Streak',
-                            Icons.local_fire_department,
-                            AppColors.accentOrange),
+                        Text('Muraho, $parentName',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: AppColors.textSecondary)),
+                        Text('Parent Dashboard',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.w700)),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.logout, size: 22),
+                    tooltip: 'Sign out',
+                    onPressed: () => FirebaseAuth.instance.signOut(),
+                  ),
+                ]),
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 18)),
-            // Content controls
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Content Controls',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontSize: 16)),
-                    const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16)),
-                      child: Column(
-                        children: [
-                          SwitchListTile(
-                            secondary: const Icon(
-                                Icons.menu_book_outlined,
-                                color: AppColors.accentBlue),
-                            title: const Text('Digital Literacy Basics',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600)),
-                            subtitle: const Text(
-                                'Enable access to core modules',
-                                style: TextStyle(fontSize: 12)),
-                            value: true,
-                            onChanged: (_) {},
-                            activeThumbColor: Colors.white,
-                            activeTrackColor: AppColors.primary,
+
+            // ── Summary chips (when children are linked) ─────────────────
+            childrenAsync.when(
+              loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              data: (children) {
+                if (children.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(children: [
+                      _SummaryChip(
+                        label: '${children.length}',
+                        sub: children.length == 1 ? 'Child' : 'Children',
+                        color: AppColors.accentOrange,
+                      ),
+                      const SizedBox(width: 12),
+                      Consumer(builder: (_, ref, __) {
+                        final allProgress = children
+                            .expand((c) =>
+                                ref.watch(childProgressProvider(c.uid)).value ??
+                                const <ModuleProgress>[])
+                            .toList();
+                        final total = allProgress.fold<int>(
+                            0, (s, p) => s + p.totalLessons);
+                        final done = allProgress.fold<int>(
+                            0, (s, p) => s + p.completedLessons);
+                        final pct =
+                            total == 0 ? 0 : (done / total * 100).toInt();
+                        return Expanded(
+                          child: _SummaryChip(
+                            label: '$pct%',
+                            sub: 'Avg Progress',
+                            color: AppColors.primary,
                           ),
-                          const Divider(height: 1, indent: 56),
-                          SwitchListTile(
-                            secondary: const Icon(Icons.security,
-                                color: AppColors.accentOrange),
-                            title: const Text('Internet Safety Quiz',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600)),
-                            subtitle: const Text(
-                                'Require 100% to proceed',
-                                style: TextStyle(fontSize: 12)),
-                            value: false,
-                            onChanged: (_) {},
-                            activeThumbColor: Colors.white,
-                            activeTrackColor: AppColors.primary,
-                          ),
-                        ],
+                        );
+                      }),
+                    ]),
+                  ),
+                );
+              },
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 18)),
+
+            // ── Children list or empty state ────────────────────────────
+            childrenAsync.when(
+              loading: () => const SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator())),
+              error: (e, _) => SliverToBoxAdapter(
+                  child: _ErrorCard('Failed to load children: $e')),
+              data: (children) => children.isEmpty
+                  ? const SliverToBoxAdapter(child: _LinkChildCard())
+                  : SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (_, i) => _ChildSection(child: children[i]),
+                        childCount: children.length,
                       ),
                     ),
-                  ],
-                ),
-              ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 18)),
+
+            // ── Add another child (when already has children) ───────────
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.bar_chart, size: 16),
-                  label: const Text('View Full Activity Report'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentOrange,
-                    minimumSize: const Size(double.infinity, 52),
-                  ),
-                ),
-              ),
+              child: childrenAsync.value?.isNotEmpty == true
+                  ? const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      child: _AddChildButton(),
+                    )
+                  : const SizedBox.shrink(),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: AppColors.border))),
-        child: const SafeArea(
-          child: SizedBox(
-            height: 64,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavItem(Icons.home, 'Home', true, AppColors.accentOrange),
-                _NavItem(Icons.menu_book_outlined, 'Lessons', false,
-                    AppColors.accentOrange),
-                _NavItem(Icons.message_outlined, 'Messages', false,
-                    AppColors.accentOrange),
-                _NavItem(Icons.settings_outlined, 'Account', false,
-                    AppColors.accentOrange),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
 
-class _ScreenTime extends StatelessWidget {
-  final _days = const ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  final _vals = const [0.4, 0.7, 0.9, 0.6, 0.8, 1.0, 0.5];
+// ─── Summary chip ─────────────────────────────────────────────────────────────
+
+class _SummaryChip extends StatelessWidget {
+  final String label, sub;
+  final Color color;
+  const _SummaryChip(
+      {required this.label, required this.sub, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+          color: color, borderRadius: BorderRadius.circular(14)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: Colors.white)),
+        Text(sub,
+            style: const TextStyle(fontSize: 11, color: Colors.white70)),
+      ]),
+    );
+  }
+}
+
+// ─── Link Child Card (empty state) ───────────────────────────────────────────
+
+class _LinkChildCard extends ConsumerStatefulWidget {
+  const _LinkChildCard();
+
+  @override
+  ConsumerState<_LinkChildCard> createState() => _LinkChildCardState();
+}
+
+class _LinkChildCardState extends ConsumerState<_LinkChildCard> {
+  final _ctrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _link() async {
+    final email = _ctrl.text.trim();
+    if (email.isEmpty) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final err = await FirestoreService().linkChildByEmail(uid, email);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _error = err;
+    });
+    if (err == null) _ctrl.clear();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Screen Time Activity',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontSize: 16)),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 4),
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(8)),
-                child: const Text('+12%',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary)),
+                    color: AppColors.accentOrange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.child_care,
+                    color: AppColors.accentOrange, size: 26),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text('5.2 hrs',
-              style: Theme.of(context).textTheme.headlineLarge),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 80,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(
-                7,
-                (i) => Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 32,
-                      height: 64 * _vals[i],
-                      decoration: BoxDecoration(
-                        color: i == 5
-                            ? AppColors.accentOrange
-                            : AppColors.accentOrange
-                                .withValues(alpha: 0.28),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(_days[i],
-                        style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textHint)),
+                    Text('No children linked yet',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    Text("Enter your child's account email to connect",
+                        style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ),
               ),
+            ]),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _ctrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                hintText: "Child's email address",
+                prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                errorText: _error,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 12),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  const _BChip(this.label, this.icon, this.color);
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 26),
-            const SizedBox(height: 6),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: color)),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _loading ? null : _link,
+                icon: _loading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.link, size: 18),
+                label: Text(_loading ? 'Linking…' : 'Link Child Account'),
+                style:
+                    ElevatedButton.styleFrom(minimumSize: const Size(0, 48)),
+              ),
+            ),
           ],
         ),
       ),
@@ -415,29 +292,382 @@ class _BChip extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  final Color ac;
-  const _NavItem(this.icon, this.label, this.active, this.ac);
+// ─── Add Another Child Button ────────────────────────────────────────────────
+
+class _AddChildButton extends ConsumerStatefulWidget {
+  const _AddChildButton();
+
+  @override
+  ConsumerState<_AddChildButton> createState() => _AddChildButtonState();
+}
+
+class _AddChildButtonState extends ConsumerState<_AddChildButton> {
+  bool _expanded = false;
+  final _ctrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _link() async {
+    final email = _ctrl.text.trim();
+    if (email.isEmpty) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final err = await FirestoreService().linkChildByEmail(uid, email);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _error = err;
+      if (err == null) _expanded = false;
+    });
+    if (err == null) _ctrl.clear();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon,
-            color: active ? ac : AppColors.textHint, size: 22),
-        const SizedBox(height: 2),
-        Text(label,
-            style: TextStyle(
-                fontSize: 10,
-                color: active ? ac : AppColors.textHint,
-                fontWeight: active
-                    ? FontWeight.w600
-                    : FontWeight.w400)),
-      ],
+    if (!_expanded) {
+      return TextButton.icon(
+        onPressed: () => setState(() => _expanded = true),
+        icon: const Icon(Icons.add, size: 18),
+        label: const Text('Link another child'),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16)),
+      child: Column(children: [
+        TextField(
+          controller: _ctrl,
+          keyboardType: TextInputType.emailAddress,
+          decoration: InputDecoration(
+            hintText: "Child's email address",
+            prefixIcon: const Icon(Icons.email_outlined, size: 20),
+            errorText: _error,
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: _loading ? null : _link,
+              style:
+                  ElevatedButton.styleFrom(minimumSize: const Size(0, 44)),
+              child: _loading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('Link'),
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+              onPressed: () => setState(() => _expanded = false),
+              child: const Text('Cancel')),
+        ]),
+      ]),
     );
   }
+}
+
+// ─── Child Section ───────────────────────────────────────────────────────────
+
+class _ChildSection extends ConsumerWidget {
+  final UserModel child;
+  const _ChildSection({required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressList =
+        ref.watch(childProgressProvider(child.uid)).value ?? [];
+    final quizResults =
+        ref.watch(childQuizResultsProvider(child.uid)).value ?? [];
+    final modules = ref.watch(modulesProvider).value ?? [];
+
+    final totalLessons =
+        progressList.fold<int>(0, (s, p) => s + p.totalLessons);
+    final doneLessons =
+        progressList.fold<int>(0, (s, p) => s + p.completedLessons);
+    final overallPct =
+        totalLessons == 0 ? 0 : (doneLessons / totalLessons * 100).toInt();
+    final passedQuizzes = quizResults.where((r) => r.passed).length;
+
+    // Most recently accessed module
+    final recent = [...progressList]
+      ..sort((a, b) => b.lastAccessed.compareTo(a.lastAccessed));
+    final currentModule = recent.isNotEmpty ? recent.first : null;
+    final currentModuleData = modules.cast<ModuleModel?>().firstWhere(
+          (m) => m?.id == currentModule?.moduleId,
+          orElse: () => null,
+        );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // ── Child header card ──────────────────────────────────────────
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ParentChildDetailScreen(child: child),
+            ),
+          ),
+          child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16)),
+          child: Row(children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: const BoxDecoration(
+                  color: AppColors.accentOrange, shape: BoxShape.circle),
+              child: Center(
+                child: Text(
+                  (child.name.isNotEmpty ? child.name : child.email)[0]
+                      .toUpperCase(),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(child.name.isNotEmpty ? child.name : child.email,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                      '$overallPct% overall · $passedQuizzes quiz${passedQuizzes == 1 ? '' : 'zes'} passed',
+                      style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(20)),
+              child: Text('$overallPct%',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ),
+          ]),
+          ),
+        ),
+
+        // ── Current module progress ────────────────────────────────────
+        if (currentModule != null) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(children: [
+                      if (currentModuleData != null) ...[
+                        Icon(_iconFromKey(currentModuleData.iconKey),
+                            color: Color(currentModuleData.colorValue),
+                            size: 16),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        'Currently: ${currentModuleData?.title ?? currentModule.moduleId}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ]),
+                    Text('${currentModule.percent.toInt()}%',
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  child: LinearProgressIndicator(
+                    value: currentModule.percent / 100,
+                    minHeight: 8,
+                    backgroundColor: AppColors.border,
+                    valueColor: AlwaysStoppedAnimation(
+                        currentModuleData != null
+                            ? Color(currentModuleData.colorValue)
+                            : AppColors.primary),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                    '${currentModule.completedLessons}/${currentModule.totalLessons} lessons completed',
+                    style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+
+        // ── All modules breakdown ──────────────────────────────────────
+        if (progressList.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('All Modules',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                ...progressList.map((p) {
+                  final mod = modules.cast<ModuleModel?>().firstWhere(
+                        (m) => m?.id == p.moduleId,
+                        orElse: () => null,
+                      );
+                  final color = mod != null
+                      ? Color(mod.colorValue)
+                      : AppColors.accentOrange;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(children: [
+                      // Module icon
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(7)),
+                        child: Icon(_iconFromKey(mod?.iconKey ?? ''),
+                            color: color, size: 15),
+                      ),
+                      const SizedBox(width: 10),
+                      // Module name
+                      SizedBox(
+                        width: 72,
+                        child: Text(mod?.title ?? p.moduleId,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary),
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      const SizedBox(width: 8),
+                      // Progress bar
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: p.percent / 100,
+                            minHeight: 6,
+                            backgroundColor: AppColors.border,
+                            valueColor: AlwaysStoppedAnimation(color),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Percentage
+                      SizedBox(
+                        width: 34,
+                        child: Text('${p.percent.toInt()}%',
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: color),
+                            textAlign: TextAlign.right),
+                      ),
+                      // Completed badge
+                      if (p.isCompleted) ...[
+                        const SizedBox(width: 6),
+                        const Icon(Icons.check_circle,
+                            color: AppColors.primary, size: 14),
+                      ],
+                    ]),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+
+        // ── No progress yet ────────────────────────────────────────────
+        if (progressList.isEmpty) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16)),
+            child: Row(children: [
+              const Icon(Icons.hourglass_empty,
+                  color: AppColors.textHint, size: 20),
+              const SizedBox(width: 12),
+              Text("${child.name.isNotEmpty ? child.name : 'Your child'} hasn't started any lessons yet.",
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 13)),
+            ]),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  IconData _iconFromKey(String key) {
+    const map = {
+      'word': Icons.description_outlined,
+      'excel': Icons.grid_on_outlined,
+      'email': Icons.email_outlined,
+      'safety': Icons.shield_outlined,
+    };
+    return map[key] ?? Icons.book_outlined;
+  }
+}
+
+// ─── Error card ───────────────────────────────────────────────────────────────
+
+class _ErrorCard extends StatelessWidget {
+  final String message;
+  const _ErrorCard(this.message);
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(message,
+            style: const TextStyle(color: AppColors.accentRed)),
+      );
 }
