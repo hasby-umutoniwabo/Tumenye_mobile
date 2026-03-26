@@ -1,38 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/providers/firestore_providers.dart';
+import '../../../../core/models/quiz_result_model.dart';
+import '../../../../core/models/progress_model.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
   @override
-  State<NotificationsScreen> createState() => _State();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
-class _State extends State<NotificationsScreen> {
-  int _f = 0;
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  int _filter = 0;
   static const _filters = ['All', 'Achievements', 'Reminders'];
-  static const _notifs = [
-    _N(Icons.alarm, AppColors.primary, 'Lesson Reminder',
-        'Time to learn! Your next Digital Safety module is waiting.',
-        '10m ago', true),
-    _N(Icons.emoji_events, AppColors.accentYellow, 'Goal Achievement',
-        "Champion! You've completed the 'Internet Basics' quest.",
-        '2h ago', true),
-    _N(Icons.local_fire_department, AppColors.accentOrange, 'Streak Update',
-        "5 Days Strong! You're becoming a digital expert.",
-        'Yesterday', false),
-    _N(Icons.person_add_outlined, AppColors.accentBlue, 'New Friend Request',
-        'Kallan from Kigali sent you a friend request.', '2d ago', false),
-    _N(Icons.shield_outlined, AppColors.accentRed, 'Security Tip',
-        "Never share your password with anyone, even friends!",
-        '3d ago', false),
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final quizResults = ref.watch(userQuizResultsProvider).value ?? [];
+    final progressList = ref.watch(allProgressProvider).value ?? [];
+
+    final items = _buildItems(quizResults, progressList);
+    final filtered = _filtered(items);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
           child: Column(children: [
+        // ── Header ──────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           child: Row(children: [
@@ -47,6 +43,7 @@ class _State extends State<NotificationsScreen> {
           ]),
         ),
         const SizedBox(height: 16),
+        // ── Filter chips ─────────────────────────────────────────────
         SizedBox(
             height: 36,
             child: ListView.separated(
@@ -55,16 +52,15 @@ class _State extends State<NotificationsScreen> {
               itemCount: _filters.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (_, i) {
-                final on = i == _f;
+                final on = i == _filter;
                 return GestureDetector(
-                  onTap: () => setState(() => _f = i),
+                  onTap: () => setState(() => _filter = i),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 18, vertical: 8),
                     decoration: BoxDecoration(
-                        color:
-                            on ? AppColors.primary : AppColors.surface,
+                        color: on ? AppColors.primary : AppColors.surface,
                         borderRadius: BorderRadius.circular(20)),
                     child: Text(_filters[i],
                         style: TextStyle(
@@ -78,83 +74,216 @@ class _State extends State<NotificationsScreen> {
               },
             )),
         const SizedBox(height: 14),
+        // ── Notifications list ───────────────────────────────────────
         Expanded(
-            child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: _notifs.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
-          itemBuilder: (_, i) {
-            final n = _notifs[i];
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                            color:
-                                n.color.withValues(alpha: 0.12),
-                            borderRadius:
-                                BorderRadius.circular(12)),
-                        child:
-                            Icon(n.icon, color: n.color, size: 22)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                        child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                          Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(n.title,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                            color:
-                                                AppColors.textPrimary)),
-                                Text(n.time,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall),
-                              ]),
-                          const SizedBox(height: 3),
-                          Text(n.body,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                      color:
-                                          AppColors.textSecondary)),
-                        ])),
-                    if (n.isNew)
-                      Container(
-                          margin: const EdgeInsets.only(
-                              left: 8, top: 5),
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle)),
-                  ]),
-            );
-          },
-        )),
+          child: filtered.isEmpty
+              ? _EmptyState(filter: _filters[_filter])
+              : ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (_, i) => _NotifRow(n: filtered[i]),
+                ),
+        ),
       ])),
+    );
+  }
+
+  List<_NotifItem> _buildItems(
+      List<QuizResultModel> results, List<ModuleProgress> progress) {
+    final items = <_NotifItem>[];
+
+    // Quiz results → achievement notifications
+    for (final r in results) {
+      if (r.passed) {
+        items.add(_NotifItem(
+          icon: Icons.check_circle_outline,
+          color: AppColors.primary,
+          title: 'Quiz Passed',
+          body:
+              'You passed the ${_moduleTitle(r.moduleId)} quiz with ${r.score}/${r.total}!',
+          time: _timeAgo(r.attemptedAt),
+          isNew: DateTime.now().difference(r.attemptedAt).inHours < 24,
+          type: 'achievement',
+        ));
+      } else {
+        items.add(_NotifItem(
+          icon: Icons.replay_outlined,
+          color: AppColors.accentOrange,
+          title: 'Quiz Attempt',
+          body:
+              'You scored ${r.score}/${r.total} on ${_moduleTitle(r.moduleId)} quiz. Try again!',
+          time: _timeAgo(r.attemptedAt),
+          isNew: DateTime.now().difference(r.attemptedAt).inHours < 24,
+          type: 'achievement',
+        ));
+      }
+    }
+
+    // Completed modules → achievement notifications
+    for (final p in progress.where((p) => p.isCompleted)) {
+      items.add(_NotifItem(
+        icon: Icons.emoji_events,
+        color: AppColors.accentYellow,
+        title: 'Module Completed!',
+        body:
+            "You completed the ${_moduleTitle(p.moduleId)} module. Great work!",
+        time: _timeAgo(p.lastAccessed),
+        isNew: DateTime.now().difference(p.lastAccessed).inHours < 48,
+        type: 'achievement',
+      ));
+    }
+
+    // Static reminders (always shown under Reminders filter)
+    items.addAll([
+      _NotifItem(
+        icon: Icons.alarm,
+        color: AppColors.primary,
+        title: 'Daily Reminder',
+        body: 'Keep your streak going — a short lesson today makes a big difference!',
+        time: 'Today',
+        isNew: true,
+        type: 'reminder',
+      ),
+      _NotifItem(
+        icon: Icons.shield_outlined,
+        color: AppColors.accentRed,
+        title: 'Safety Tip',
+        body: 'Never share your password with anyone, even friends!',
+        time: 'This week',
+        isNew: false,
+        type: 'reminder',
+      ),
+    ]);
+
+    // Sort: newest unread first
+    items.sort((a, b) {
+      if (a.isNew && !b.isNew) return -1;
+      if (!a.isNew && b.isNew) return 1;
+      return 0;
+    });
+
+    return items;
+  }
+
+  List<_NotifItem> _filtered(List<_NotifItem> all) {
+    if (_filter == 0) return all;
+    if (_filter == 1) return all.where((n) => n.type == 'achievement').toList();
+    return all.where((n) => n.type == 'reminder').toList();
+  }
+
+  String _moduleTitle(String id) {
+    switch (id) {
+      case 'word':
+        return 'MS Word';
+      case 'excel':
+        return 'MS Excel';
+      case 'email':
+        return 'Email';
+      case 'safety':
+        return 'Internet Safety';
+      default:
+        return id;
+    }
+  }
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays}d ago';
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final String filter;
+  const _EmptyState({required this.filter});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        const Icon(Icons.notifications_none,
+            size: 56, color: AppColors.textHint),
+        const SizedBox(height: 12),
+        Text('No $filter notifications yet',
+            style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary)),
+        const SizedBox(height: 6),
+        const Text('Complete lessons and quizzes to earn achievements!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: AppColors.textHint)),
+      ]),
     );
   }
 }
 
-class _N {
+class _NotifRow extends StatelessWidget {
+  final _NotifItem n;
+  const _NotifRow({required this.n});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+                color: n.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12)),
+            child: Icon(n.icon, color: n.color, size: 22)),
+        const SizedBox(width: 12),
+        Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(n.title,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary)),
+                    Text(n.time,
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ]),
+              const SizedBox(height: 3),
+              Text(n.body,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppColors.textSecondary)),
+            ])),
+        if (n.isNew)
+          Container(
+              margin: const EdgeInsets.only(left: 8, top: 5),
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                  color: AppColors.primary, shape: BoxShape.circle)),
+      ]),
+    );
+  }
+}
+
+class _NotifItem {
   final IconData icon;
   final Color color;
-  final String title, body, time;
+  final String title, body, time, type;
   final bool isNew;
-  const _N(this.icon, this.color, this.title, this.body, this.time,
-      this.isNew);
+  const _NotifItem({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.body,
+    required this.time,
+    required this.isNew,
+    required this.type,
+  });
 }

@@ -1,0 +1,180 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─────────────────────────────────────────────────────────────
+    // HELPER FUNCTIONS
+    // ─────────────────────────────────────────────────────────────
+
+    // User is signed in
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Request is made by the document owner
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Fetch the requesting user's role from Firestore
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // User is an admin or teacher
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() in ['admin', 'teacher'];
+    }
+
+    // Requesting user is a parent linked to the given child
+    function isParentOf(childId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/parentLinks/$(request.auth.uid)/children/$(childId));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // USERS
+    // /users/{uid}
+    // ─────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      // Any authenticated user can read profiles (needed for parent-child linking by email)
+      allow read: if isAuthenticated();
+
+      // Only the backend (auth service) creates user docs on registration
+      // Allow create only if the authenticated user is creating their own doc
+      allow create: if isOwner(uid);
+
+      // Owner can update limited fields; admin can update anything
+      allow update: if isOwner(uid) || isAdmin();
+
+      // Only admin can delete a user document
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // MODULES
+    // /modules/{moduleId}
+    // ─────────────────────────────────────────────────────────────
+    match /modules/{moduleId} {
+      // Any signed-in user can read modules (content is public within the app)
+      allow read: if isAuthenticated();
+
+      // Only admins can create, update, or delete modules
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // LESSONS
+    // /lessons/{lessonId}
+    // ─────────────────────────────────────────────────────────────
+    match /lessons/{lessonId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // QUIZZES
+    // /quizzes/{quizId}
+    // ─────────────────────────────────────────────────────────────
+    match /quizzes/{quizId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // QUESTIONS
+    // /questions/{questionId}
+    // ─────────────────────────────────────────────────────────────
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // ACHIEVEMENTS (definitions)
+    // /achievements/{achievementId}
+    // ─────────────────────────────────────────────────────────────
+    match /achievements/{achievementId} {
+      // Any signed-in user can read achievement definitions
+      allow read: if isAuthenticated();
+
+      // Only admin can define new achievements
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // PROGRESS
+    // /progress/{userId}/modules/{moduleId}
+    // /progress/{userId}/lessons/{lessonId}
+    // /progress/{userId}/streak  (single document)
+    // ─────────────────────────────────────────────────────────────
+    match /progress/{userId}/{document=**} {
+      // Owner, admin, or a parent linked to the student can read progress
+      allow read: if isOwner(userId) || isAdmin() || isParentOf(userId);
+
+      // Only the owner or admin can write progress (not parents)
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // USER ACHIEVEMENTS (earned badges)
+    // /userAchievements/{userId}/badges/{achievementId}
+    // ─────────────────────────────────────────────────────────────
+    match /userAchievements/{userId}/{document=**} {
+      // Owner, admin, or parent can read earned badges
+      allow read: if isOwner(userId) || isAdmin() || isParentOf(userId);
+
+      // Badges are awarded by the app logic (owner writes on quiz/lesson completion)
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // PARENT–CHILD LINKS
+    // /parentLinks/{parentId}/children/{childId}
+    // ─────────────────────────────────────────────────────────────
+    match /parentLinks/{parentId}/{document=**} {
+      allow read: if isOwner(parentId) || isAdmin();
+      // Parent can manage their own links
+      allow write: if isOwner(parentId) || isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // RECENT ACTIVITY (admin feed + app events)
+    // /recentActivity/{actId}
+    // ─────────────────────────────────────────────────────────────
+    match /recentActivity/{actId} {
+      allow read: if isAuthenticated();
+      // Written by app on quiz/module completion
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // SCREEN TIME
+    // /screenTime/{userId}/days/{date}
+    // ─────────────────────────────────────────────────────────────
+    match /screenTime/{userId}/{document=**} {
+      // Owner, admin, or a linked parent can read screen time
+      allow read: if isOwner(userId) || isAdmin() || isParentOf(userId);
+
+      // Only the owner (app writing on lesson complete) or admin can write
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // NOTIFICATIONS
+    // /notifications/{userId}/items/{notificationId}
+    // ─────────────────────────────────────────────────────────────
+    match /notifications/{userId}/{document=**} {
+      // Only the recipient can read their own notifications
+      allow read: if isOwner(userId);
+
+      // Owner can update (mark as read); admin can create notifications
+      allow update: if isOwner(userId);
+      allow create: if isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+  }
+}

@@ -1,20 +1,27 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/providers/firestore_providers.dart';
+import '../../../../core/models/progress_model.dart';
+import '../../../../core/models/quiz_result_model.dart';
 
-class AchievementsScreen extends StatelessWidget {
+class AchievementsScreen extends ConsumerWidget {
   const AchievementsScreen({super.key});
 
-  static const _badges = [
-    _B('Early Bird', Icons.wb_sunny_outlined, AppColors.accentYellow, true),
-    _B('Word Master', Icons.description_outlined, AppColors.accentBlue, true),
-    _B('7-Day Hero', Icons.local_fire_department, AppColors.accentRed, true),
-    _B('Fast Learner', Icons.bolt, AppColors.accentOrange, true),
-    _B('Excel Guru', Icons.grid_on, AppColors.primary, false),
-    _B('30-Day Pro', Icons.workspace_premium, AppColors.accentPurple, false),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName ?? user?.email?.split('@').first ?? 'User';
+    final progressList = ref.watch(allProgressProvider).value ?? [];
+    final quizResults = ref.watch(userQuizResultsProvider).value ?? [];
+
+    final totalLessons = progressList.fold<int>(0, (s, p) => s + p.totalLessons);
+    final doneLessons = progressList.fold<int>(0, (s, p) => s + p.completedLessons);
+    final xp = doneLessons * 100 + quizResults.where((r) => r.passed).length * 50;
+
+    final badges = _computeBadges(progressList, quizResults);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -57,12 +64,12 @@ class AchievementsScreen extends StatelessWidget {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                Text('Jean Bosco',
+                Text(displayName,
                     style: Theme.of(context)
                         .textTheme
                         .bodyLarge
                         ?.copyWith(fontWeight: FontWeight.w700)),
-                Text('Literacy Level 12',
+                Text('$doneLessons / $totalLessons Lessons Done',
                     style: Theme.of(context).textTheme.bodySmall),
               ])),
               Container(
@@ -71,11 +78,12 @@ class AchievementsScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: AppColors.accentYellow.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20)),
-                child: const Row(children: [
-                  Icon(Icons.bolt, size: 14, color: AppColors.accentYellow),
-                  SizedBox(width: 4),
-                  Text('+1,250 XP',
-                      style: TextStyle(
+                child: Row(children: [
+                  const Icon(Icons.bolt,
+                      size: 14, color: AppColors.accentYellow),
+                  const SizedBox(width: 4),
+                  Text('+$xp XP',
+                      style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: AppColors.accentYellow)),
@@ -89,74 +97,81 @@ class AchievementsScreen extends StatelessWidget {
         SliverToBoxAdapter(
             child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Module Progress',
                 style: Theme.of(context)
                     .textTheme
                     .headlineSmall
                     ?.copyWith(fontSize: 16)),
             const SizedBox(height: 16),
-            const Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _Bar('Kinyar.', 0.80),
-                  _Bar('MS Word', 0.45),
-                  _Bar('MS Excel', 0.20),
-                  _Bar('Typing', 0.60),
-                ]),
+            if (progressList.isEmpty)
+              const Text('Start a module to track your progress.',
+                  style: TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary))
+            else
+              Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: progressList
+                      .map((p) => _Bar(
+                            _moduleLabel(p.moduleId),
+                            p.percent / 100,
+                          ))
+                      .toList()),
           ]),
         )),
         const SliverToBoxAdapter(child: SizedBox(height: 22)),
-        // Streak
-        SliverToBoxAdapter(
-            child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Learning Streak',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontSize: 16)),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16)),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.local_fire_department,
-                          color: AppColors.accentOrange, size: 26),
-                      const SizedBox(width: 8),
-                      Text('7 Days',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(color: AppColors.accentOrange)),
-                      const Spacer(),
-                      const Text('CURRENT STREAK',
+        // Quiz results summary
+        if (quizResults.isNotEmpty) ...[
+          SliverToBoxAdapter(
+              child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Quiz Results',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontSize: 16)),
+              const SizedBox(height: 12),
+              ...quizResults.take(4).map((r) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Row(children: [
+                      Icon(
+                          r.passed
+                              ? Icons.check_circle
+                              : Icons.cancel_outlined,
+                          color: r.passed
+                              ? AppColors.primary
+                              : AppColors.accentRed,
+                          size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                          child: Text(
+                              '${_moduleLabel(r.moduleId)} — ${r.quizId}',
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500))),
+                      Text('${r.score}/${r.total}',
                           style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.textHint,
-                              letterSpacing: 0.5)),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: r.passed
+                                  ? AppColors.primary
+                                  : AppColors.accentRed)),
                     ]),
-                    const SizedBox(height: 14),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(
-                            7,
-                            (i) => _Day(
-                                ['M', 'T', 'W', 'T', 'F', 'S', 'S'][i],
-                                (14 + i).toString(),
-                                true))),
-                  ]),
-            ),
-          ]),
-        )),
-        const SliverToBoxAdapter(child: SizedBox(height: 22)),
+                  )),
+            ]),
+          )),
+          const SliverToBoxAdapter(child: SizedBox(height: 22)),
+        ],
+        // Badges
         SliverToBoxAdapter(
             child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -171,8 +186,8 @@ class AchievementsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           sliver: SliverGrid(
             delegate: SliverChildBuilderDelegate(
-                (_, i) => _BadgeTile(b: _badges[i]),
-                childCount: _badges.length),
+                (_, i) => _BadgeTile(b: badges[i]),
+                childCount: badges.length),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 mainAxisSpacing: 12,
@@ -192,6 +207,43 @@ class AchievementsScreen extends StatelessWidget {
         const SliverToBoxAdapter(child: SizedBox(height: 40)),
       ])),
     );
+  }
+
+  String _moduleLabel(String moduleId) {
+    switch (moduleId) {
+      case 'word':
+        return 'MS Word';
+      case 'excel':
+        return 'MS Excel';
+      case 'email':
+        return 'Email';
+      case 'safety':
+        return 'Safety';
+      default:
+        return moduleId;
+    }
+  }
+
+  List<_B> _computeBadges(
+      List<ModuleProgress> progress, List<QuizResultModel> results) {
+    bool completed(String id) =>
+        progress.any((p) => p.moduleId == id && p.isCompleted);
+    bool anyPerfect() => results.any((r) => r.score == r.total && r.total > 0);
+    bool allDone() =>
+        ['word', 'excel', 'email', 'safety'].every(completed);
+
+    return [
+      _B('Word Master', Icons.description_outlined, AppColors.accentBlue,
+          completed('word')),
+      _B('Excel Guru', Icons.grid_on, AppColors.primary, completed('excel')),
+      _B('Email Pro', Icons.email_outlined, AppColors.accentOrange,
+          completed('email')),
+      _B('Safety Hero', Icons.shield_outlined, AppColors.accentPurple,
+          completed('safety')),
+      _B('Perfect Score', Icons.bolt, AppColors.accentYellow, anyPerfect()),
+      _B('All Modules', Icons.workspace_premium, AppColors.accentRed,
+          allDone()),
+    ];
   }
 }
 
@@ -215,7 +267,7 @@ class _Bar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8)),
             alignment: Alignment.bottomCenter,
             child: FractionallySizedBox(
-                heightFactor: val,
+                heightFactor: val.clamp(0.0, 1.0),
                 child: Container(
                     decoration: BoxDecoration(
                         color: AppColors.primary,
@@ -224,32 +276,6 @@ class _Bar extends StatelessWidget {
         Text(label,
             style: const TextStyle(
                 fontSize: 10, color: AppColors.textSecondary)),
-      ]);
-}
-
-class _Day extends StatelessWidget {
-  final String day, date;
-  final bool active;
-  const _Day(this.day, this.date, this.active);
-  @override
-  Widget build(BuildContext context) => Column(children: [
-        Text(day,
-            style: TextStyle(
-                fontSize: 10,
-                color: active ? AppColors.primary : AppColors.textHint)),
-        const SizedBox(height: 4),
-        Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-                color: active ? AppColors.primary : AppColors.border,
-                shape: BoxShape.circle),
-            child: Center(
-                child: Text(date,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: active ? Colors.white : AppColors.textHint)))),
       ]);
 }
 

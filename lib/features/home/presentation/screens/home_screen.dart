@@ -1,19 +1,47 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/models/progress_model.dart';
+import '../../../../core/providers/firestore_providers.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = FirebaseAuth.instance.currentUser;
+    final progressList = ref.watch(allProgressProvider).value ?? [];
+
+    final totalLessons =
+        progressList.fold<int>(0, (s, p) => s + p.totalLessons);
+    final doneLessons =
+        progressList.fold<int>(0, (s, p) => s + p.completedLessons);
+    final overallPct =
+        totalLessons == 0 ? 0 : (doneLessons / totalLessons * 100).toInt();
+
+    // Find module in progress (started but not complete)
+    final inProgress = progressList
+        .where((p) => p.completedLessons > 0 && !p.isCompleted)
+        .toList()
+      ..sort((a, b) =>
+          b.lastAccessed.compareTo(a.lastAccessed));
+    final currentProgress = inProgress.isNotEmpty ? inProgress.first : null;
+
+    final displayName = user?.displayName?.split(' ').first ??
+        user?.email?.split('@').first ??
+        'Muraho';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(slivers: [
-          SliverToBoxAdapter(child: _TopBar()),
+          SliverToBoxAdapter(
+              child: _TopBar(name: displayName, streak: overallPct)),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          SliverToBoxAdapter(child: _CurrentModuleCard()),
+          SliverToBoxAdapter(
+              child: _CurrentModuleCard(progress: currentProgress)),
           const SliverToBoxAdapter(child: SizedBox(height: 14)),
           SliverToBoxAdapter(child: _DailyGoalCard()),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -30,6 +58,10 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
+  final String name;
+  final int streak;
+  const _TopBar({required this.name, required this.streak});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -46,7 +78,7 @@ class _TopBar extends StatelessWidget {
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-              Text('Muraho, Kalisa! 👋',
+              Text('Muraho, $name! 👋',
                   style: Theme.of(context)
                       .textTheme
                       .bodyLarge
@@ -60,11 +92,11 @@ class _TopBar extends StatelessWidget {
           decoration: BoxDecoration(
               color: AppColors.accentYellow.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20)),
-          child: const Row(children: [
-            Icon(Icons.bolt, size: 14, color: AppColors.accentYellow),
-            SizedBox(width: 2),
-            Text('5',
-                style: TextStyle(
+          child: Row(children: [
+            const Icon(Icons.bolt, size: 14, color: AppColors.accentYellow),
+            const SizedBox(width: 2),
+            Text('$streak%',
+                style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: AppColors.accentYellow)),
@@ -80,8 +112,15 @@ class _TopBar extends StatelessWidget {
 }
 
 class _CurrentModuleCard extends StatelessWidget {
+  final ModuleProgress? progress;
+  const _CurrentModuleCard({this.progress});
+
   @override
   Widget build(BuildContext context) {
+    final pct = progress == null ? 0 : progress!.percent.toInt();
+    final progressVal = progress?.percent ?? 0.0;
+    final moduleLabel = progress?.moduleId.toUpperCase() ?? 'MODULES';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -97,7 +136,7 @@ class _CurrentModuleCard extends StatelessWidget {
                   color: AppColors.darkTextSecondary,
                   letterSpacing: 1.2)),
           const SizedBox(height: 8),
-          Text('Basic Vowels',
+          Text(moduleLabel,
               style: Theme.of(context)
                   .textTheme
                   .headlineSmall
@@ -107,16 +146,16 @@ class _CurrentModuleCard extends StatelessWidget {
             Expanded(
                 child: ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: const LinearProgressIndicator(
-                  value: 0.65,
+              child: LinearProgressIndicator(
+                  value: progressVal / 100,
                   minHeight: 7,
                   backgroundColor: AppColors.darkBorder,
                   valueColor:
-                      AlwaysStoppedAnimation(AppColors.primary)),
+                      const AlwaysStoppedAnimation(AppColors.primary)),
             )),
             const SizedBox(width: 12),
-            const Text('65%',
-                style: TextStyle(
+            Text('$pct%',
+                style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primary)),
@@ -125,7 +164,7 @@ class _CurrentModuleCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => context.push(AppRoutes.lesson),
+              onPressed: () => context.go(AppRoutes.modules),
               icon: const Text('Continue'),
               label: const Icon(Icons.arrow_forward, size: 16),
               style:
