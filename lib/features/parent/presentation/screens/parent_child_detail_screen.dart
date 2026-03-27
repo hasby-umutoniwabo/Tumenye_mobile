@@ -28,12 +28,23 @@ class ParentChildDetailScreen extends ConsumerWidget {
         progressList.fold<int>(0, (s, p) => s + p.completedLessons);
     final overallPct =
         totalLessons == 0 ? 0 : (doneLessons / totalLessons * 100).toInt();
+    final overallProgress = totalLessons == 0 ? 0.0 : doneLessons / totalLessons;
 
     final screenTimeMap = screenTimeAsync.valueOrNull ?? {};
     final completedIds = completedLessonsAsync.valueOrNull ?? [];
 
+    final passedQuizzes = quizResults.where((r) => r.passed).length;
+    final completedModules = progressList.where((p) => p.isCompleted).length;
+
+    // Most recent activity
+    final recentActivity = [...progressList]
+      ..sort((a, b) => b.lastAccessed.compareTo(a.lastAccessed));
+    final lastSeen = recentActivity.isNotEmpty
+        ? recentActivity.first.lastAccessed
+        : null;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -44,11 +55,15 @@ class ParentChildDetailScreen extends ConsumerWidget {
                 child: Row(children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios_new, size: 20),
+                    child: Icon(Icons.arrow_back_ios_new,
+                        size: 20, color: context.textPrimaryColor),
                   ),
                   const Spacer(),
                   Text(child.name.isNotEmpty ? child.name : child.email,
-                      style: Theme.of(context).textTheme.headlineSmall),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(color: context.textPrimaryColor)),
                   const Spacer(),
                   const SizedBox(width: 20),
                 ]),
@@ -56,69 +71,127 @@ class ParentChildDetailScreen extends ConsumerWidget {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-            // ── Avatar + overall stats ─────────────────────────────────────
+            // ── Hero card: avatar + stats ──────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16)),
-                  child: Row(children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                          color: AppColors.accentOrange,
-                          shape: BoxShape.circle),
-                      child: Center(
-                        child: Text(
-                          (child.name.isNotEmpty
-                                  ? child.name
-                                  : child.email)[0]
-                              .toUpperCase(),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800),
+                      color: context.cardColor,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: context.borderColor)),
+                  child: Column(children: [
+                    Row(children: [
+                      Container(
+                        width: 68,
+                        height: 68,
+                        decoration: const BoxDecoration(
+                            color: AppColors.accentOrange,
+                            shape: BoxShape.circle),
+                        child: Center(
+                          child: Text(
+                            (child.name.isNotEmpty
+                                    ? child.name
+                                    : child.email)[0]
+                                .toUpperCase(),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w800),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                child.name.isNotEmpty
+                                    ? child.name
+                                    : child.email,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: context.textPrimaryColor)),
+                            const SizedBox(height: 2),
+                            Text(child.email,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                        color: context.textSecondaryColor)),
+                            if (lastSeen != null) ...[
+                              const SizedBox(height: 6),
+                              Row(children: [
+                                Icon(Icons.access_time,
+                                    size: 12,
+                                    color: context.textSecondaryColor),
+                                const SizedBox(width: 4),
+                                Text('Last active ${_timeAgo(lastSeen)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                            color:
+                                                context.textSecondaryColor)),
+                              ]),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ]),
+                    const SizedBox(height: 20),
+                    // Overall progress bar
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                              child.name.isNotEmpty ? child.name : child.email,
+                          Text('Overall Progress',
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 4),
-                          Text(child.email,
-                              style: Theme.of(context).textTheme.bodySmall),
-                          const SizedBox(height: 10),
-                          Row(children: [
-                            _StatPill(
-                                label: '$overallPct%',
-                                sub: 'Progress',
-                                color: AppColors.primary),
-                            const SizedBox(width: 8),
-                            _StatPill(
-                                label: '$doneLessons',
-                                sub: 'Lessons',
-                                color: AppColors.accentBlue),
-                            const SizedBox(width: 8),
-                            _StatPill(
-                                label: '${quizResults.where((r) => r.passed).length}',
-                                sub: 'Quizzes',
-                                color: AppColors.accentOrange),
-                          ]),
-                        ],
+                                  .bodySmall
+                                  ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: context.textPrimaryColor)),
+                          Text('$overallPct%',
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary)),
+                        ]),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: overallProgress,
+                        minHeight: 10,
+                        backgroundColor:
+                            AppColors.primary.withValues(alpha: 0.12),
+                        valueColor: const AlwaysStoppedAnimation(
+                            AppColors.primary),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    // Stats row
+                    Row(children: [
+                      _StatBox(
+                          value: '$doneLessons',
+                          label: 'Lessons\nCompleted',
+                          color: AppColors.primary),
+                      _StatDivider(),
+                      _StatBox(
+                          value: '$passedQuizzes',
+                          label: 'Quizzes\nPassed',
+                          color: AppColors.accentBlue),
+                      _StatDivider(),
+                      _StatBox(
+                          value: '$completedModules',
+                          label: 'Modules\nFinished',
+                          color: AppColors.accentOrange),
+                    ]),
                   ]),
                 ),
               ),
@@ -134,12 +207,12 @@ class ParentChildDetailScreen extends ConsumerWidget {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-            // ── Quiz Scores ────────────────────────────────────────────────
+            // ── Quiz History ────────────────────────────────────────────
             if (quizResults.isNotEmpty) ...[
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _QuizScoresCard(
+                  child: _QuizHistoryCard(
                       quizResults: quizResults, modules: modules),
                 ),
               ),
@@ -163,33 +236,50 @@ class ParentChildDetailScreen extends ConsumerWidget {
       ),
     );
   }
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'yesterday';
+    return '${diff.inDays}d ago';
+  }
 }
 
-// ─── Stat pill ────────────────────────────────────────────────────────────────
+// ─── Stat box ─────────────────────────────────────────────────────────────────
 
-class _StatPill extends StatelessWidget {
-  final String label, sub;
+class _StatBox extends StatelessWidget {
+  final String value, label;
   final Color color;
-  const _StatPill(
-      {required this.label, required this.sub, required this.color});
+  const _StatBox(
+      {required this.value, required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(20)),
+    return Expanded(
       child: Column(children: [
-        Text(label,
+        Text(value,
             style: TextStyle(
-                fontSize: 14,
+                fontSize: 20,
                 fontWeight: FontWeight.w800,
                 color: color)),
-        Text(sub,
-            style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.7))),
+        const SizedBox(height: 4),
+        Text(label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 10,
+                color: context.textSecondaryColor)),
       ]),
     );
+  }
+}
+
+class _StatDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        width: 1, height: 40, color: context.borderColor);
   }
 }
 
@@ -201,49 +291,64 @@ class _ScreenTimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Build last 7 days
     final today = DateTime.now();
     final days = List.generate(7, (i) {
       final d = today.subtract(Duration(days: 6 - i));
       final key =
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-      return _DayData(
-        label: _dayLabel(d.weekday),
-        minutes: screenTimeMap[key] ?? 0,
-      );
+      return _DayData(label: _dayLabel(d.weekday), minutes: screenTimeMap[key] ?? 0);
     });
 
     final maxMin = days.fold<int>(1, (m, d) => d.minutes > m ? d.minutes : m);
     final totalMins = days.fold<int>(0, (s, d) => s + d.minutes);
     final totalHrs = totalMins ~/ 60;
     final remMins = totalMins % 60;
+    final todayMins = days.last.minutes;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16)),
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: context.borderColor)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Screen Time',
+          Text('Weekly Screen Time',
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w700)),
-          Text(
-              totalMins == 0
-                  ? 'No activity'
-                  : totalHrs > 0
-                      ? '${totalHrs}h ${remMins}m this week'
-                      : '${totalMins}m this week',
-              style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary)),
+                  ?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: context.textPrimaryColor)),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12)),
+            child: Text(
+                totalMins == 0
+                    ? 'No activity'
+                    : totalHrs > 0
+                        ? '${totalHrs}h ${remMins}m total'
+                        : '${totalMins}m total',
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary)),
+          ),
         ]),
+        if (todayMins > 0) ...[
+          const SizedBox(height: 6),
+          Text('Today: ${todayMins}m',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: context.textSecondaryColor)),
+        ],
         const SizedBox(height: 16),
         SizedBox(
-          height: 80,
+          height: 90,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: days.map((d) {
@@ -255,6 +360,17 @@ class _ScreenTimeCard extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      if (d.minutes > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: Text('${d.minutes}m',
+                              style: TextStyle(
+                                  fontSize: 8,
+                                  color: isToday
+                                      ? AppColors.primary
+                                      : context.textSecondaryColor,
+                                  fontWeight: FontWeight.w600)),
+                        ),
                       Expanded(
                         child: Align(
                           alignment: Alignment.bottomCenter,
@@ -264,20 +380,21 @@ class _ScreenTimeCard extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: isToday
                                     ? AppColors.primary
-                                    : AppColors.primary.withValues(alpha: 0.35),
-                                borderRadius: BorderRadius.circular(4),
+                                    : AppColors.primary
+                                        .withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(5),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 5),
                       Text(d.label,
                           style: TextStyle(
                               fontSize: 10,
                               color: isToday
                                   ? AppColors.primary
-                                  : AppColors.textHint,
+                                  : context.textSecondaryColor,
                               fontWeight: isToday
                                   ? FontWeight.w700
                                   : FontWeight.normal)),
@@ -304,31 +421,49 @@ class _DayData {
   const _DayData({required this.label, required this.minutes});
 }
 
-// ─── Quiz Scores Card ─────────────────────────────────────────────────────────
+// ─── Quiz History Card ────────────────────────────────────────────────────────
 
-class _QuizScoresCard extends StatelessWidget {
+class _QuizHistoryCard extends StatelessWidget {
   final List<QuizResultModel> quizResults;
   final List<ModuleModel> modules;
-  const _QuizScoresCard(
+  const _QuizHistoryCard(
       {required this.quizResults, required this.modules});
 
   @override
   Widget build(BuildContext context) {
     final sorted = [...quizResults]
       ..sort((a, b) => b.attemptedAt.compareTo(a.attemptedAt));
+    final passed = quizResults.where((r) => r.passed).length;
+    final avgPct = quizResults.isEmpty
+        ? 0
+        : (quizResults.fold<double>(
+                    0, (s, r) => s + r.percent) /
+                quizResults.length *
+                100)
+            .toInt();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16)),
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: context.borderColor)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Quiz Scores',
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 12),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text('Quiz Performance',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: context.textPrimaryColor)),
+          Text('$passed/${quizResults.length} passed · avg $avgPct%',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: context.textSecondaryColor)),
+        ]),
+        const SizedBox(height: 14),
         ...sorted.take(5).map((r) {
           final mod = modules.cast<ModuleModel?>().firstWhere(
                 (m) => m?.id == r.moduleId,
@@ -338,35 +473,42 @@ class _QuizScoresCard extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 10),
             child: Row(children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 34,
+                height: 34,
                 decoration: BoxDecoration(
-                    color: (r.passed ? AppColors.primary : AppColors.accentRed)
+                    color: (r.passed
+                            ? AppColors.primary
+                            : AppColors.accentRed)
                         .withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(10)),
                 child: Icon(
-                    r.passed ? Icons.check_circle_outline : Icons.close,
+                    r.passed
+                        ? Icons.check_circle_outline
+                        : Icons.replay_outlined,
                     color:
                         r.passed ? AppColors.primary : AppColors.accentRed,
                     size: 18),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                   Text(mod?.title ?? r.moduleId,
-                      style: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w600)),
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: context.textPrimaryColor)),
                   Text(
-                      '${r.score}/${r.total} · ${(r.percent * 100).toInt()}%',
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary)),
+                      '${r.score}/${r.total} · ${(r.percent * 100).toInt()}% · ${_timeAgo(r.attemptedAt)}',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: context.textSecondaryColor)),
                 ]),
               ),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                     color: r.passed
                         ? AppColors.primary.withValues(alpha: 0.1)
@@ -386,6 +528,15 @@ class _QuizScoresCard extends StatelessWidget {
       ]),
     );
   }
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'yesterday';
+    return '${diff.inDays}d ago';
+  }
 }
 
 // ─── Module Breakdown ─────────────────────────────────────────────────────────
@@ -404,34 +555,47 @@ class _ModuleBreakdownCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (progressList.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16)),
-        child: const Row(children: [
-          Icon(Icons.hourglass_empty, color: AppColors.textHint, size: 20),
-          SizedBox(width: 12),
+            color: context.cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: context.borderColor)),
+        child: Row(children: [
+          const Icon(Icons.hourglass_empty,
+              color: AppColors.textHint, size: 22),
+          const SizedBox(width: 12),
           Text('No modules started yet.',
-              style:
-                  TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              style: TextStyle(
+                  color: context.textSecondaryColor, fontSize: 13)),
         ]),
       );
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16)),
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: context.borderColor)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Module Progress',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 12),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Module Progress',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimaryColor)),
+            Text(
+                '${progressList.where((p) => p.isCompleted).length}/${progressList.length} done',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: context.textSecondaryColor)),
+          ]),
+          const SizedBox(height: 14),
           ...progressList.map((p) {
             final mod = modules.cast<ModuleModel?>().firstWhere(
                   (m) => m?.id == p.moduleId,
@@ -439,29 +603,30 @@ class _ModuleBreakdownCard extends ConsumerWidget {
                 );
             final color =
                 mod != null ? Color(mod.colorValue) : AppColors.accentOrange;
-            final lessonsAsync =
-                ref.watch(lessonsProvider(p.moduleId));
+            final lessonsAsync = ref.watch(lessonsProvider(p.moduleId));
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
                   Container(
-                    width: 28,
-                    height: 28,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(7)),
+                        borderRadius: BorderRadius.circular(8)),
                     child: Icon(_iconFromKey(mod?.iconKey ?? ''),
-                        color: color, size: 15),
+                        color: color, size: 16),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(mod?.title ?? p.moduleId,
-                        style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w600)),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: context.textPrimaryColor)),
                   ),
-                  Text('${p.percent.toInt()}%',
+                  Text('${(p.percent * 100).toInt()}%',
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -469,21 +634,28 @@ class _ModuleBreakdownCard extends ConsumerWidget {
                   if (p.isCompleted) ...[
                     const SizedBox(width: 4),
                     const Icon(Icons.check_circle,
-                        color: AppColors.primary, size: 14),
+                        color: AppColors.primary, size: 16),
                   ],
                 ]),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: p.percent / 100,
+                    value: p.percent,
                     minHeight: 6,
-                    backgroundColor: AppColors.border,
+                    backgroundColor:
+                        color.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation(color),
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                    '${p.completedLessons}/${p.totalLessons} lessons completed',
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: context.textSecondaryColor)),
                 const SizedBox(height: 8),
-                // Per-lesson completion status
+                // Per-lesson status
                 lessonsAsync.when(
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
@@ -491,7 +663,7 @@ class _ModuleBreakdownCard extends ConsumerWidget {
                     children: lessons.map((lesson) {
                       final done = completedLessonIds.contains(lesson.id);
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 4, left: 38),
+                        padding: const EdgeInsets.only(bottom: 5, left: 42),
                         child: Row(children: [
                           Icon(
                               done
@@ -501,26 +673,28 @@ class _ModuleBreakdownCard extends ConsumerWidget {
                                   ? AppColors.primary
                                   : AppColors.textHint,
                               size: 14),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 7),
                           Expanded(
                             child: Text(lesson.title,
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: done
-                                        ? AppColors.textPrimary
-                                        : AppColors.textSecondary)),
+                                        ? context.textPrimaryColor
+                                        : context.textSecondaryColor)),
                           ),
                           if (done)
                             Text('${lesson.estimatedMinutes}m',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 10,
-                                    color: AppColors.textHint)),
+                                    color: context.textSecondaryColor)),
                         ]),
                       );
                     }).toList(),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
+                Divider(height: 1, color: context.borderColor),
+                const SizedBox(height: 14),
               ],
             );
           }),

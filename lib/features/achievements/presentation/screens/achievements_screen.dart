@@ -23,7 +23,7 @@ class AchievementsScreen extends ConsumerWidget {
     final badges = _computeBadges(progressList, quizResults);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
           child: CustomScrollView(slivers: [
         SliverToBoxAdapter(
@@ -48,7 +48,7 @@ class AchievementsScreen extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: context.primaryLightColor,
                 borderRadius: BorderRadius.circular(16)),
             child: Row(children: [
               Container(
@@ -106,9 +106,9 @@ class AchievementsScreen extends ConsumerWidget {
                     ?.copyWith(fontSize: 16)),
             const SizedBox(height: 16),
             if (progressList.isEmpty)
-              const Text('Start a module to track your progress.',
+              Text('Start a module to track your progress.',
                   style: TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary))
+                      fontSize: 13, color: context.textSecondaryColor))
             else
               Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -140,7 +140,7 @@ class AchievementsScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(12)),
                     child: Row(children: [
                       Icon(
@@ -263,7 +263,7 @@ class _Bar extends StatelessWidget {
             width: 48,
             height: 80,
             decoration: BoxDecoration(
-                color: AppColors.border,
+                color: context.borderColor,
                 borderRadius: BorderRadius.circular(8)),
             alignment: Alignment.bottomCenter,
             child: FractionallySizedBox(
@@ -274,8 +274,8 @@ class _Bar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8))))),
         const SizedBox(height: 6),
         Text(label,
-            style: const TextStyle(
-                fontSize: 10, color: AppColors.textSecondary)),
+            style: TextStyle(
+                fontSize: 10, color: context.textSecondaryColor)),
       ]);
 }
 
@@ -287,12 +287,12 @@ class _BadgeTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: b.earned
               ? b.color.withValues(alpha: 0.1)
-              : AppColors.surface,
+              : context.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
               color: b.earned
                   ? b.color.withValues(alpha: 0.3)
-                  : AppColors.border),
+                  : context.borderColor),
         ),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           b.earned

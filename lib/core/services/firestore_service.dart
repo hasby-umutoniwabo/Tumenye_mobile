@@ -301,6 +301,15 @@ class FirestoreService {
     return null;
   }
 
+  Future<void> unlinkChild(String parentId, String childId) async {
+    await _db
+        .collection('parentLinks')
+        .doc(parentId)
+        .collection('children')
+        .doc(childId)
+        .delete();
+  }
+
   Stream<List<UserModel>> getLinkedChildren(String parentId) => _db
       .collection('parentLinks')
       .doc(parentId)

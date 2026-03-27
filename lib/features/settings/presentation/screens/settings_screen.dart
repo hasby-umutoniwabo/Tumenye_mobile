@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/preferences_providers.dart';
 import '../../../../shared/widgets/icon_box.dart';
 
@@ -15,9 +16,11 @@ class SettingsScreen extends ConsumerWidget {
     final data = ref.watch(dataUsageProvider);
     final reminders = ref.watch(remindersProvider);
     final lang = ref.watch(languageProvider);
+    final user = ref.watch(currentUserStreamProvider).valueOrNull;
+    final displayName = user?.name ?? 'Student';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
           child: CustomScrollView(slivers: [
         SliverToBoxAdapter(
@@ -38,36 +41,48 @@ class SettingsScreen extends ConsumerWidget {
         SliverToBoxAdapter(
             child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16)),
-            child: Row(children: [
-              Container(
-                  width: 52,
-                  height: 52,
-                  decoration: const BoxDecoration(
-                      color: AppColors.accentOrange,
-                      shape: BoxShape.circle),
-                  child: const Icon(Icons.person,
-                      color: Colors.white, size: 28)),
-              const SizedBox(width: 12),
-              Expanded(
-                  child:
-                      Column(crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                Text('Keza Uwase',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(fontWeight: FontWeight.w700)),
-                Text('Digital Literacy Student',
-                    style: Theme.of(context).textTheme.bodySmall),
-              ])),
-              const Icon(Icons.chevron_right,
-                  size: 20, color: AppColors.textHint),
-            ]),
+          child: GestureDetector(
+            onTap: () => context.push(AppRoutes.profile),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: context.cardColor,
+                  borderRadius: BorderRadius.circular(16)),
+              child: Row(children: [
+                Container(
+                    width: 52,
+                    height: 52,
+                    decoration: const BoxDecoration(
+                        color: AppColors.accentOrange,
+                        shape: BoxShape.circle),
+                    child: Center(
+                      child: Text(
+                        displayName.isNotEmpty
+                            ? displayName[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800),
+                      ),
+                    )),
+                const SizedBox(width: 12),
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(displayName,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.w700)),
+                      Text('Digital Literacy Student',
+                          style: Theme.of(context).textTheme.bodySmall),
+                    ])),
+                const Icon(Icons.chevron_right,
+                    size: 20, color: AppColors.textHint),
+              ]),
+            ),
           ),
         )),
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -162,9 +177,9 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () {}),
           const Divider(height: 1, indent: 60, endIndent: 16),
           ListTile(
-              leading: const IconBox(
+              leading: IconBox(
                   icon: Icons.info_outline,
-                  color: AppColors.textSecondary),
+                  color: context.textSecondaryColor),
               title: const Text('About the App',
                   style: TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
@@ -177,7 +192,31 @@ class SettingsScreen extends ConsumerWidget {
             child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: OutlinedButton.icon(
-              onPressed: () => context.go(AppRoutes.welcome),
+              onPressed: () => showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                          title: const Text('Sign Out'),
+                          content:
+                              const Text('Are you sure you want to sign out?'),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel')),
+                            ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.pop(ctx);
+                                  await ref
+                                      .read(authServiceProvider)
+                                      .signOut();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.accentRed),
+                                child: const Text('Sign Out')),
+                          ],
+                        ),
+                  ),
               icon: const Icon(Icons.logout,
                   size: 16, color: AppColors.accentRed),
               label: const Text('Sign Out',
@@ -204,7 +243,7 @@ class SettingsScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, String current) {
     showModalBottomSheet(
         context: context,
-        backgroundColor: AppColors.background,
+        backgroundColor: context.bgColor,
         shape: const RoundedRectangleBorder(
             borderRadius:
                 BorderRadius.vertical(top: Radius.circular(24))),
@@ -241,10 +280,10 @@ class _Label extends StatelessWidget {
           child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
         child: Text(text,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary,
+                color: context.textSecondaryColor,
                 letterSpacing: 0.5)),
       ));
 }
@@ -258,7 +297,7 @@ class _Card extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Container(
             decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.cardColor,
                 borderRadius: BorderRadius.circular(16)),
             child: Column(children: children)),
       ));

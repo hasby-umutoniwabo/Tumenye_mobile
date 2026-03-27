@@ -25,6 +25,20 @@ abstract class AppColors {
   static const darkTextSecondary = Color(0xFF94A3B8);
 }
 
+/// Context-aware color helpers — automatically switch between light and dark values.
+extension ThemeX on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  Color get bgColor => isDark ? AppColors.darkBg : AppColors.background;
+  Color get surfaceColor => isDark ? AppColors.darkSurface : AppColors.surface;
+  Color get cardColor => isDark ? AppColors.darkCard : AppColors.surface;
+  Color get borderColor => isDark ? AppColors.darkBorder : AppColors.border;
+  Color get textPrimaryColor => isDark ? AppColors.darkText : AppColors.textPrimary;
+  Color get textSecondaryColor =>
+      isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+  Color get primaryLightColor =>
+      isDark ? AppColors.darkCard : AppColors.primaryLight;
+}
+
 abstract class AppTheme {
   static TextTheme _text(TextTheme base) =>
       GoogleFonts.poppinsTextTheme(base).copyWith(
