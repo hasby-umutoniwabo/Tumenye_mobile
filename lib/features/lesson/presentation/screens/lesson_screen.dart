@@ -55,7 +55,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     final lessonsAsync = ref.watch(lessonsProvider(moduleId));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: lessonsAsync.when(
           loading: () =>
@@ -113,7 +113,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                     decoration: BoxDecoration(
                                         color: i < step
                                             ? AppColors.primary
-                                            : AppColors.border,
+                                            : context.borderColor,
                                         borderRadius:
                                             BorderRadius.circular(2))),
                               ))),
@@ -147,7 +147,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                     width: 80,
                                     height: 4,
                                     decoration: BoxDecoration(
-                                        color: AppColors.border,
+                                        color: context.borderColor,
                                         borderRadius:
                                             BorderRadius.circular(2))),
                                 const SizedBox(height: 5),
@@ -155,7 +155,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                     width: 56,
                                     height: 4,
                                     decoration: BoxDecoration(
-                                        color: AppColors.border,
+                                        color: context.borderColor,
                                         borderRadius:
                                             BorderRadius.circular(2))),
                               ]),
@@ -172,13 +172,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                 .bodyMedium
                                 ?.copyWith(
                                     height: 1.65,
-                                    color: AppColors.textPrimary)),
+                                    color: context.textPrimaryColor)),
                         const SizedBox(height: 16),
                         if (lesson.translation.isNotEmpty)
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                                color: AppColors.primaryLight,
+                                color: context.primaryLightColor,
                                 borderRadius:
                                     BorderRadius.circular(12)),
                             child: Row(
@@ -208,8 +208,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                                 .textTheme
                                                 .bodySmall
                                                 ?.copyWith(
-                                                    color: AppColors
-                                                        .textPrimary,
+                                                    color: context
+                                                        .textPrimaryColor,
                                                     height: 1.6)),
                                       ])),
                                 ]),
@@ -231,10 +231,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                           label: const Text('Back'),
                           style: OutlinedButton.styleFrom(
                               minimumSize: const Size(0, 48),
-                              side: const BorderSide(
-                                  color: AppColors.border),
+                              side: BorderSide(
+                                  color: context.borderColor),
                               foregroundColor:
-                                  AppColors.textSecondary,
+                                  context.textSecondaryColor,
                               shape: RoundedRectangleBorder(
                                   borderRadius:
                                       BorderRadius.circular(12))),

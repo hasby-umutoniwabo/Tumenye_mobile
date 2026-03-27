@@ -16,7 +16,7 @@ class ModulesScreen extends ConsumerWidget {
     final progressList = ref.watch(allProgressProvider).value ?? [];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: CustomScrollView(slivers: [
           SliverToBoxAdapter(child: _Header(progressList: progressList)),
@@ -115,7 +115,7 @@ class _Header extends StatelessWidget {
             child: LinearProgressIndicator(
                 value: _overallProgress,
                 minHeight: 10,
-                backgroundColor: AppColors.border,
+                backgroundColor: context.borderColor,
                 valueColor:
                     const AlwaysStoppedAnimation(AppColors.primary)),
           )),
@@ -130,7 +130,7 @@ class _Header extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: context.primaryLightColor,
               borderRadius: BorderRadius.circular(8)),
           child: const Text('🔥  KEEP UP THE GREAT WORK',
               style: TextStyle(
@@ -206,7 +206,7 @@ class _ModuleCard extends StatelessWidget {
           Text(module.title,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary)),
+                  color: context.textPrimaryColor)),
           const SizedBox(height: 3),
           Text(subtitle,
               style:

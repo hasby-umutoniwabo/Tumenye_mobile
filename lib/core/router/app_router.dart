@@ -14,6 +14,9 @@ import '../../features/quiz/presentation/screens/quiz_screen.dart';
 import '../../features/achievements/presentation/screens/achievements_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/parent/presentation/screens/parent_dashboard_screen.dart';
+import '../../features/parent/presentation/screens/parent_activity_screen.dart';
+import '../../features/parent/presentation/screens/parent_account_screen.dart';
+import '../../features/parent/presentation/widgets/parent_scaffold.dart';
 import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/screens/admin_students_screen.dart';
 import '../../features/admin/presentation/screens/admin_student_detail_screen.dart';
@@ -39,6 +42,8 @@ abstract class AppRoutes {
   static const achievements = '/achievements';
   static const notifications = '/notifications';
   static const parent = '/parent';
+  static const parentActivity = '/parent/activity';
+  static const parentAccount = '/parent/account';
   static const admin = '/admin';
   static const adminStudents = '/admin/students';
   static const adminStudentDetail = '/admin/students/:uid';
@@ -104,7 +109,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         if (role == 'admin' && !onAdminRoute) return AppRoutes.admin;
 
         // Parent on non-parent routes → send to parent dashboard
-        if (role == 'parent' && loc != AppRoutes.parent) return AppRoutes.parent;
+        if (role == 'parent' && !loc.startsWith('/parent')) return AppRoutes.parent;
       }
 
       return null;
@@ -141,9 +146,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: AppRoutes.notifications,
           builder: (_, __) => const NotificationsScreen()),
-      GoRoute(
-          path: AppRoutes.parent,
-          builder: (_, __) => const ParentDashboardScreen()),
+      // Parent shell with bottom nav
+      ShellRoute(
+        builder: (_, __, child) => ParentScaffold(child: child),
+        routes: [
+          GoRoute(
+              path: AppRoutes.parent,
+              builder: (_, __) => const ParentDashboardScreen()),
+          GoRoute(
+              path: AppRoutes.parentActivity,
+              builder: (_, __) => const ParentActivityScreen()),
+          GoRoute(
+              path: AppRoutes.parentAccount,
+              builder: (_, __) => const ParentAccountScreen()),
+        ],
+      ),
       // Admin shell with bottom nav
       ShellRoute(
         builder: (_, __, child) => AdminScaffold(child: child),

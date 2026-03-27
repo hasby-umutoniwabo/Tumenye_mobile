@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/firestore_providers.dart';
+import '../../../../core/providers/preferences_providers.dart';
 import '../../../../core/models/quiz_result_model.dart';
 import '../../../../core/models/progress_model.dart';
 
@@ -20,12 +21,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Widget build(BuildContext context) {
     final quizResults = ref.watch(userQuizResultsProvider).value ?? [];
     final progressList = ref.watch(allProgressProvider).value ?? [];
+    final remindersEnabled = ref.watch(remindersProvider);
+    final todayMins = ref.watch(todayScreenTimeProvider).value ?? 0;
 
-    final items = _buildItems(quizResults, progressList);
+    final items = _buildItems(quizResults, progressList, remindersEnabled, todayMins);
     final filtered = _filtered(items);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
           child: Column(children: [
         // ── Header ──────────────────────────────────────────────────
@@ -60,7 +63,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 18, vertical: 8),
                     decoration: BoxDecoration(
-                        color: on ? AppColors.primary : AppColors.surface,
+                        color: on ? AppColors.primary : context.surfaceColor,
                         borderRadius: BorderRadius.circular(20)),
                     child: Text(_filters[i],
                         style: TextStyle(
@@ -68,7 +71,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             fontWeight: FontWeight.w600,
                             color: on
                                 ? Colors.white
-                                : AppColors.textSecondary)),
+                                : context.textSecondaryColor)),
                   ),
                 );
               },
@@ -89,8 +92,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  List<_NotifItem> _buildItems(
-      List<QuizResultModel> results, List<ModuleProgress> progress) {
+  List<_NotifItem> _buildItems(List<QuizResultModel> results,
+      List<ModuleProgress> progress, bool remindersEnabled, int todayMins) {
     final items = <_NotifItem>[];
 
     // Quiz results → achievement notifications
@@ -134,27 +137,37 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       ));
     }
 
-    // Static reminders (always shown under Reminders filter)
-    items.addAll([
-      _NotifItem(
-        icon: Icons.alarm,
-        color: AppColors.primary,
-        title: 'Daily Reminder',
-        body: 'Keep your streak going — a short lesson today makes a big difference!',
-        time: 'Today',
-        isNew: true,
-        type: 'reminder',
-      ),
-      _NotifItem(
-        icon: Icons.shield_outlined,
-        color: AppColors.accentRed,
-        title: 'Safety Tip',
-        body: 'Never share your password with anyone, even friends!',
-        time: 'This week',
-        isNew: false,
-        type: 'reminder',
-      ),
-    ]);
+    // Reminders — only shown when the user has enabled them in settings
+    if (remindersEnabled) {
+      const goalMinutes = 30;
+      final goalMet = todayMins >= goalMinutes;
+      final reminderBody = goalMet
+          ? "You've hit your daily goal! Keep the momentum going tomorrow."
+          : todayMins > 0
+              ? "You've done $todayMins min today — only ${goalMinutes - todayMins} more to reach your goal!"
+              : "You haven't studied yet today. A short lesson makes a big difference!";
+
+      items.addAll([
+        _NotifItem(
+          icon: Icons.alarm,
+          color: AppColors.primary,
+          title: 'Daily Reminder',
+          body: reminderBody,
+          time: 'Today',
+          isNew: !goalMet,
+          type: 'reminder',
+        ),
+        _NotifItem(
+          icon: Icons.shield_outlined,
+          color: AppColors.accentRed,
+          title: 'Safety Tip',
+          body: 'Never share your password with anyone, even friends!',
+          time: 'This week',
+          isNew: false,
+          type: 'reminder',
+        ),
+      ]);
+    }
 
     // Sort: newest unread first
     items.sort((a, b) {
@@ -209,10 +222,10 @@ class _EmptyState extends StatelessWidget {
             size: 56, color: AppColors.textHint),
         const SizedBox(height: 12),
         Text('No $filter notifications yet',
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary)),
+                color: context.textSecondaryColor)),
         const SizedBox(height: 6),
         const Text('Complete lessons and quizzes to earn achievements!',
             textAlign: TextAlign.center,
@@ -249,7 +262,7 @@ class _NotifRow extends StatelessWidget {
                     Text(n.title,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary)),
+                            color: context.textPrimaryColor)),
                     Text(n.time,
                         style: Theme.of(context).textTheme.bodySmall),
                   ]),
@@ -258,7 +271,7 @@ class _NotifRow extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
-                      ?.copyWith(color: AppColors.textSecondary)),
+                      ?.copyWith(color: context.textSecondaryColor)),
             ])),
         if (n.isNew)
           Container(

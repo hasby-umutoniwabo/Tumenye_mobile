@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/models/progress_model.dart';
+import '../../../../core/models/lesson_model.dart';
 import '../../../../core/providers/firestore_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -13,9 +13,13 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = FirebaseAuth.instance.currentUser;
     final progressList = ref.watch(allProgressProvider).value ?? [];
+    final modulesList = ref.watch(modulesProvider).value ?? [];
+    final quizResults = ref.watch(userQuizResultsProvider).value ?? [];
 
-    final totalLessons =
-        progressList.fold<int>(0, (s, p) => s + p.totalLessons);
+    // Total lessons from ALL modules (not just ones with progress docs)
+    final totalLessons = modulesList.isNotEmpty
+        ? modulesList.fold<int>(0, (s, m) => s + m.totalLessons)
+        : progressList.fold<int>(0, (s, p) => s + p.totalLessons);
     final doneLessons =
         progressList.fold<int>(0, (s, p) => s + p.completedLessons);
     final overallPct =
@@ -25,23 +29,67 @@ class HomeScreen extends ConsumerWidget {
     final inProgress = progressList
         .where((p) => p.completedLessons > 0 && !p.isCompleted)
         .toList()
-      ..sort((a, b) =>
-          b.lastAccessed.compareTo(a.lastAccessed));
+      ..sort((a, b) => b.lastAccessed.compareTo(a.lastAccessed));
     final currentProgress = inProgress.isNotEmpty ? inProgress.first : null;
+
+    // Determine next module and lesson index
+    final completedIds =
+        progressList.where((p) => p.isCompleted).map((p) => p.moduleId).toSet();
+    final sortedModules = [...modulesList]
+      ..sort((a, b) => a.order.compareTo(b.order));
+    final String nextModuleId;
+    final int nextLessonIndex;
+    if (currentProgress != null) {
+      nextModuleId = currentProgress.moduleId;
+      nextLessonIndex = currentProgress.completedLessons;
+    } else {
+      final nextModule = sortedModules
+          .where((m) => !completedIds.contains(m.id))
+          .toList();
+      nextModuleId = nextModule.isNotEmpty
+          ? nextModule.first.id
+          : (sortedModules.isNotEmpty ? sortedModules.first.id : 'word');
+      nextLessonIndex = 0;
+    }
+
+    // Current module card values
+    final String currentCardTitle;
+    final double currentCardProgress;
+    final bool currentCardIsNew;
+    if (currentProgress != null) {
+      final mod = sortedModules.where((m) => m.id == currentProgress.moduleId).toList();
+      currentCardTitle = mod.isNotEmpty ? mod.first.title : currentProgress.moduleId.toUpperCase();
+      currentCardProgress = currentProgress.percent;
+      currentCardIsNew = false;
+    } else {
+      final nextMod = sortedModules.where((m) => m.id == nextModuleId).toList();
+      currentCardTitle = nextMod.isNotEmpty ? nextMod.first.title : nextModuleId.toUpperCase();
+      currentCardProgress = 0.0;
+      currentCardIsNew = completedIds.length < sortedModules.length;
+    }
+
+    // Notification badge count — new quiz results (last 24h) + recent completions
+    final now = DateTime.now();
+    final notifCount =
+        quizResults.where((r) => now.difference(r.attemptedAt).inHours < 24).length +
+        progressList.where((p) => p.isCompleted && now.difference(p.lastAccessed).inHours < 48).length;
 
     final displayName = user?.displayName?.split(' ').first ??
         user?.email?.split('@').first ??
         'Muraho';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: CustomScrollView(slivers: [
           SliverToBoxAdapter(
-              child: _TopBar(name: displayName, streak: overallPct)),
+              child: _TopBar(name: displayName, streak: overallPct, notifCount: notifCount)),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
           SliverToBoxAdapter(
-              child: _CurrentModuleCard(progress: currentProgress)),
+              child: _CurrentModuleCard(
+                  title: currentCardTitle,
+                  progressValue: currentCardProgress,
+                  isNew: currentCardIsNew)),
           const SliverToBoxAdapter(child: SizedBox(height: 14)),
           SliverToBoxAdapter(child: _DailyGoalCard()),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -49,7 +97,8 @@ class HomeScreen extends ConsumerWidget {
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
           SliverToBoxAdapter(child: _LatestBadge()),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          SliverToBoxAdapter(child: _NextTopic()),
+          SliverToBoxAdapter(
+              child: _NextTopic(moduleId: nextModuleId, completedLessons: nextLessonIndex)),
           const SliverToBoxAdapter(child: SizedBox(height: 36)),
         ]),
       ),
@@ -60,7 +109,8 @@ class HomeScreen extends ConsumerWidget {
 class _TopBar extends StatelessWidget {
   final String name;
   final int streak;
-  const _TopBar({required this.name, required this.streak});
+  final int notifCount;
+  const _TopBar({required this.name, required this.streak, required this.notifCount});
 
   @override
   Widget build(BuildContext context) {
@@ -105,21 +155,31 @@ class _TopBar extends StatelessWidget {
         const SizedBox(width: 10),
         GestureDetector(
             onTap: () => context.push(AppRoutes.notifications),
-            child: const Icon(Icons.notifications_outlined, size: 24)),
+            child: Badge(
+              isLabelVisible: notifCount > 0,
+              label: Text('$notifCount'),
+              child: const Icon(Icons.notifications_outlined, size: 24),
+            )),
       ]),
     );
   }
 }
 
 class _CurrentModuleCard extends StatelessWidget {
-  final ModuleProgress? progress;
-  const _CurrentModuleCard({this.progress});
+  final String title;
+  final double progressValue;
+  final bool isNew;
+  const _CurrentModuleCard({
+    required this.title,
+    required this.progressValue,
+    this.isNew = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final pct = progress == null ? 0 : progress!.percent.toInt();
-    final progressVal = progress?.percent ?? 0.0;
-    final moduleLabel = progress?.moduleId.toUpperCase() ?? 'MODULES';
+    final pct = (progressValue * 100).toInt();
+    final progressVal = progressValue;
+    final moduleLabel = title.toUpperCase();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -147,7 +207,7 @@ class _CurrentModuleCard extends StatelessWidget {
                 child: ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                  value: progressVal / 100,
+                  value: progressVal,
                   minHeight: 7,
                   backgroundColor: AppColors.darkBorder,
                   valueColor:
@@ -177,35 +237,55 @@ class _CurrentModuleCard extends StatelessWidget {
   }
 }
 
-class _DailyGoalCard extends StatelessWidget {
+class _DailyGoalCard extends ConsumerWidget {
+  static const int _goalMinutes = 30;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todayMins = ref.watch(todayScreenTimeProvider).value ?? 0;
+    final done = todayMins.clamp(0, _goalMinutes);
+    final progress = done / _goalMinutes;
+    final remaining = _goalMinutes - done;
+    final statusText = done >= _goalMinutes
+        ? 'Goal reached! 🎉'
+        : remaining <= 5
+            ? 'Almost there! 🔥'
+            : '$remaining min left';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: AppColors.primaryLight,
+            color: context.primaryLightColor,
             borderRadius: BorderRadius.circular(16)),
         child: Row(children: [
-          SizedBox(
-            width: 52,
-            height: 52,
-            child: Stack(alignment: Alignment.center, children: [
-              CircularProgressIndicator(
-                  value: 20 / 30,
-                  strokeWidth: 5,
-                  backgroundColor:
-                      AppColors.primary.withValues(alpha: 0.2),
-                  valueColor:
-                      const AlwaysStoppedAnimation(AppColors.primary)),
-              const Text('20/30',
-                  style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
-            ]),
-          ),
+          done >= _goalMinutes
+              ? Container(
+                  width: 52,
+                  height: 52,
+                  decoration: const BoxDecoration(
+                      color: AppColors.primary, shape: BoxShape.circle),
+                  child: const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 26))
+              : SizedBox(
+                  width: 52,
+                  height: 52,
+                  child: Stack(alignment: Alignment.center, children: [
+                    CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 5,
+                        backgroundColor:
+                            AppColors.primary.withValues(alpha: 0.2),
+                        valueColor:
+                            const AlwaysStoppedAnimation(AppColors.primary)),
+                    Text('$done/$_goalMinutes',
+                        style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary)),
+                  ]),
+                ),
           const SizedBox(width: 14),
           Expanded(
               child: Column(
@@ -219,14 +299,14 @@ class _DailyGoalCard extends StatelessWidget {
                               .textTheme
                               .bodyLarge
                               ?.copyWith(fontWeight: FontWeight.w700)),
-                      const Text('Almost there! 🎉',
-                          style: TextStyle(
+                      Text(statusText,
+                          style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.primary)),
                     ]),
                 const SizedBox(height: 3),
-                Text('30 minutes of reading',
+                Text('$_goalMinutes minutes of learning',
                     style: Theme.of(context).textTheme.bodySmall),
               ])),
         ]),
@@ -312,7 +392,7 @@ class _LatestBadge extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.cardColor,
               borderRadius: BorderRadius.circular(14)),
           child: Row(children: [
             Container(
@@ -346,13 +426,37 @@ class _LatestBadge extends StatelessWidget {
   }
 }
 
-class _NextTopic extends StatelessWidget {
+class _NextTopic extends ConsumerWidget {
+  final String moduleId;
+  final int completedLessons;
+  const _NextTopic({required this.moduleId, required this.completedLessons});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lessonsAsync = ref.watch(lessonsProvider(moduleId));
+
+    return lessonsAsync.when(
+      loading: () => _card(context, null),
+      error: (_, __) => _card(context, null),
+      data: (lessons) {
+        final sorted = [...lessons]..sort((a, b) => a.order.compareTo(b.order));
+        final nextLesson = completedLessons < sorted.length
+            ? sorted[completedLessons]
+            : sorted.isNotEmpty
+                ? sorted.last
+                : null;
+        return _card(context, nextLesson);
+      },
+
+    );
+  }
+
+  Widget _card(BuildContext context, LessonModel? lesson) {
+    final title = lesson?.title ?? 'Start Learning';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GestureDetector(
-        onTap: () => context.push(AppRoutes.lesson),
+        onTap: () => context.push(AppRoutes.lesson, extra: moduleId),
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -374,8 +478,8 @@ class _NextTopic extends StatelessWidget {
                           color: Colors.white.withValues(alpha: 0.75),
                           letterSpacing: 1.2)),
                   const SizedBox(height: 5),
-                  const Text('Introduction to Consonants',
-                      style: TextStyle(
+                  Text(title,
+                      style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.white)),

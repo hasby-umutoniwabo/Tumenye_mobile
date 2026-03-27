@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/models/quiz_model.dart';
 import '../../../../core/providers/firestore_providers.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/services/firestore_service.dart';
 
 class QuizScreen extends ConsumerStatefulWidget {
@@ -94,9 +95,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                 ElevatedButton(
                     onPressed: () {
                       Navigator.pop(ctx);
-                      Navigator.pop(context);
+                      context.go(AppRoutes.modules);
                     },
-                    child: const Text('Back to Lessons')),
+                    child: const Text('Back to Modules')),
               ]),
             ));
   }
@@ -108,7 +109,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     final quizAsync = ref.watch(quizProvider(lessonId));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: quizAsync.when(
           loading: () =>
@@ -137,10 +138,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                           .headlineSmall),
                   const Spacer(),
                   Text('${_qi + 1}/${questions.length}',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary)),
+                          color: context.textSecondaryColor)),
                 ]),
               ),
               Padding(
@@ -151,7 +152,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                     child: LinearProgressIndicator(
                         value: (_qi + 1) / questions.length,
                         minHeight: 6,
-                        backgroundColor: AppColors.border,
+                        backgroundColor: context.borderColor,
                         valueColor: const AlwaysStoppedAnimation(
                             AppColors.primary))),
               ),
@@ -189,12 +190,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                     final Color bg, border, tc;
                     switch (state) {
                       case _S.selected:
-                        bg = AppColors.primaryLight;
+                        bg = context.primaryLightColor;
                         border = AppColors.primary;
                         tc = AppColors.primaryDark;
                         break;
                       case _S.correct:
-                        bg = AppColors.primaryLight;
+                        bg = context.primaryLightColor;
                         border = AppColors.primary;
                         tc = AppColors.primaryDark;
                         break;
@@ -205,9 +206,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                         tc = AppColors.accentRed;
                         break;
                       default:
-                        bg = AppColors.surface;
-                        border = AppColors.border;
-                        tc = AppColors.textPrimary;
+                        bg = context.surfaceColor;
+                        border = context.borderColor;
+                        tc = context.textPrimaryColor;
                     }
                     return GestureDetector(
                       onTap: () => _select(i, q),
@@ -249,7 +250,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
+                        color: context.primaryLightColor,
                         borderRadius: BorderRadius.circular(12)),
                     child: Row(children: [
                       const Icon(Icons.lightbulb_outline,
@@ -261,7 +262,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                                   .textTheme
                                   .bodySmall
                                   ?.copyWith(
-                                      color: AppColors.textPrimary,
+                                      color: context.textPrimaryColor,
                                       height: 1.5))),
                     ]),
                   ),

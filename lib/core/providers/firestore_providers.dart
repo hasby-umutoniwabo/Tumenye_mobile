@@ -103,3 +103,17 @@ final childCompletedLessonsProvider =
     FutureProvider.family<List<String>, String>((ref, childId) {
   return ref.watch(firestoreServiceProvider).getCompletedLessonIds(childId);
 });
+
+// ─── Today's Screen Time ───────────────────────────────────────────────────────
+
+final todayScreenTimeProvider = StreamProvider<int>((ref) {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return const Stream.empty();
+  final now = DateTime.now();
+  final key =
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  return ref
+      .watch(firestoreServiceProvider)
+      .getWeeklyScreenTime(uid)
+      .map((map) => map[key] ?? 0);
+});
