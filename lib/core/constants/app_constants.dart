@@ -11,6 +11,8 @@ abstract class PrefKeys {
   static const dataUsageMode = 'pref_data_usage_mode';
   static const isLoggedIn = 'pref_is_logged_in';
   static const userRole = 'pref_user_role';
+  static const notifLastSeen = 'pref_notif_last_seen';
+  static const dailyGoalMinutes = 'pref_daily_goal_minutes';
 }
 
 abstract class UserRole {

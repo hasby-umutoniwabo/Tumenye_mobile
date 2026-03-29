@@ -92,9 +92,9 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.bgColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -126,7 +126,7 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16)),
               child: Row(children: [
                 Container(
@@ -170,7 +170,7 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
             const SizedBox(height: 24),
 
             // ── Title ─────────────────────────────────────────────────
-            _label('MODULE TITLE'),
+            _label(context, 'MODULE TITLE'),
             const SizedBox(height: 6),
             TextFormField(
               controller: _title,
@@ -182,7 +182,7 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
             const SizedBox(height: 16),
 
             // ── Description ───────────────────────────────────────────
-            _label('DESCRIPTION'),
+            _label(context, 'DESCRIPTION'),
             const SizedBox(height: 6),
             TextFormField(
               controller: _description,
@@ -195,7 +195,7 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
             const SizedBox(height: 20),
 
             // ── Difficulty ────────────────────────────────────────────
-            _label('DIFFICULTY'),
+            _label(context, 'DIFFICULTY'),
             const SizedBox(height: 8),
             Row(
               children: ['beginner', 'intermediate', 'advanced'].map((d) {
@@ -210,12 +210,12 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
                       decoration: BoxDecoration(
                           color: selected
                               ? AppColors.primary
-                              : AppColors.surface,
+                              : context.surfaceColor,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                               color: selected
                                   ? AppColors.primary
-                                  : AppColors.border)),
+                                  : context.borderColor)),
                       child: Center(
                         child: Text(
                             '${d[0].toUpperCase()}${d.substring(1)}',
@@ -224,7 +224,7 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
                                 fontWeight: FontWeight.w600,
                                 color: selected
                                     ? Colors.white
-                                    : AppColors.textSecondary)),
+                                    : context.textSecondaryColor)),
                       ),
                     ),
                   ),
@@ -234,7 +234,7 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
             const SizedBox(height: 20),
 
             // ── Icon picker ───────────────────────────────────────────
-            _label('ICON'),
+            _label(context, 'ICON'),
             const SizedBox(height: 8),
             Wrap(
               spacing: 10,
@@ -250,12 +250,12 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
                     decoration: BoxDecoration(
                         color: selected
                             ? Color(_colorValue).withValues(alpha: 0.15)
-                            : AppColors.surface,
+                            : context.surfaceColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                             color: selected
                                 ? Color(_colorValue)
-                                : AppColors.border,
+                                : context.borderColor,
                             width: selected ? 2 : 1)),
                     child: Icon(e.value,
                         color: selected
@@ -269,7 +269,7 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
             const SizedBox(height: 20),
 
             // ── Color picker ──────────────────────────────────────────
-            _label('COLOR'),
+            _label(context, 'COLOR'),
             const SizedBox(height: 8),
             Wrap(
               spacing: 10,
@@ -319,19 +319,16 @@ class _AdminAddModuleScreenState extends ConsumerState<AdminAddModuleScreen> {
     );
   }
 
-  Widget _label(String text) => Text(text,
-      style: const TextStyle(
+  Widget _label(BuildContext context, String text) => Text(text,
+      style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.8,
-          color: AppColors.textSecondary));
+          color: context.textSecondaryColor));
 
   InputDecoration _dec(String hint) => InputDecoration(
         hintText: hint,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       );

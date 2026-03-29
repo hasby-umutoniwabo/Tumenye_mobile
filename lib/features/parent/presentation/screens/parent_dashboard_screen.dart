@@ -8,6 +8,7 @@ import '../../../../core/models/module_model.dart';
 import '../../../../core/models/progress_model.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../../core/services/firestore_service.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 import 'parent_child_detail_screen.dart';
 
 class ParentDashboardScreen extends ConsumerWidget {
@@ -344,24 +345,10 @@ class _ChildCard extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: const BoxDecoration(
-                        color: AppColors.accentOrange,
-                        shape: BoxShape.circle),
-                    child: Center(
-                      child: Text(
-                        (child.name.isNotEmpty
-                                ? child.name
-                                : child.email)[0]
-                            .toUpperCase(),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800),
-                      ),
-                    ),
+                  UserAvatar(
+                    name: child.name.isNotEmpty ? child.name : child.email,
+                    avatarUrl: child.avatarUrl,
+                    size: 54,
                   ),
                   const SizedBox(width: 14),
                   Expanded(

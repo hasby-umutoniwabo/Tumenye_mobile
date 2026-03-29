@@ -1,0 +1,193 @@
+{
+  "common": {
+    "continue": "Komeza",
+    "cancel": "Reka",
+    "save": "Bika",
+    "signOut": "Sohoka",
+    "signOutTitle": "Sohoka",
+    "signOutConfirm": "Urashaka gusohoka?",
+    "loading": "Gutegereza...",
+    "error": "Habayeho ikibazo",
+    "viewAll": "Reba byose",
+    "back": "Subira",
+    "link": "Huza",
+    "unlink": "Tanganya",
+    "yes": "Yego",
+    "no": "Oya"
+  },
+  "auth": {
+    "welcome": {
+      "title": "Fungura Ejo\nhazaza Cyawe",
+      "subtitle": "Jifuza MS Office, Umutekano ku Mbuga Nkoranyambaga n'Ubumenyi bwa Dijitali mu Kinyarwanda",
+      "getStarted": "Tangira",
+      "login": "Injira"
+    },
+    "login": {
+      "title": "Murakaza Neza",
+      "subtitle": "Injira ukomeze kwiga",
+      "email": "Aderesi ya imeri",
+      "password": "Ijambobanga",
+      "submit": "Injira",
+      "google": "Komeza na Google",
+      "noAccount": "Nufite konti?",
+      "register": "Iyandikishe"
+    },
+    "register": {
+      "title": "Fungura Konti",
+      "subtitle": "Jya mu bantu benshi biga dijitali",
+      "name": "Amazina yose",
+      "email": "Aderesi ya imeri",
+      "password": "Ijambobanga (byibuze inyuguti 6)",
+      "role": "Ndi",
+      "roleStudent": "Umunyeshuri",
+      "roleParent": "Umubyeyi",
+      "submit": "Fungura Konti",
+      "hasAccount": "Usanzwe ufite konti?",
+      "signIn": "Injira"
+    }
+  },
+  "home": {
+    "greeting": "Muraho, {name}! 👋",
+    "subtitle": "Witegure kwiga?",
+    "currentModule": "ISOMO URIHO",
+    "continue": "Komeza →",
+    "quickAccess": "Injira Vuba",
+    "library": "Ububiko",
+    "achievements": "Ibyacubahiwe",
+    "latestBadge": "Impeta ya Vuba",
+    "nextTopic": "ISOMO RIKURIKIRA",
+    "dailyGoal": "Intego ya Buri Munsi",
+    "goalReached": "Intego yagezeho! 🎉",
+    "almostThere": "Hafi kugera! 🔥",
+    "minLeft": "Iminota {count} isigaye",
+    "minutes": "Iminota {count} yo kwiga"
+  },
+  "modules": {
+    "title": "Ibisomo Byanjye",
+    "progress": "{done}/{total} amasomo",
+    "completed": "Byarangiye",
+    "start": "Tangira",
+    "resume": "Komeza",
+    "difficulty": {
+      "Beginner": "Utangiye",
+      "Intermediate": "Hagati",
+      "Advanced": "Inzobere"
+    }
+  },
+  "lesson": {
+    "translation": "Kinyarwanda",
+    "showTranslation": "Erekana Kinyarwanda",
+    "hideTranslation": "Hisha Kinyarwanda",
+    "complete": "Soza Isomo",
+    "next": "Isomo Rikurikira",
+    "quiz": "Ikizamini",
+    "estimatedTime": "Iminota {count} yo gusoma"
+  },
+  "quiz": {
+    "title": "Ikizamini",
+    "question": "Ikibazo {current} kuri {total}",
+    "submit": "Ohereza Igisubizo",
+    "next": "Ikibazo Gikurikira",
+    "result": {
+      "passed": "Wakunze! Warashobotse! 🎉",
+      "failed": "Komeza Kwiga!",
+      "score": "Wahawe {score} kuri {total}",
+      "passScore": "Amanota yo kuzamurwa: {score}%"
+    },
+    "backToModules": "Garuka ku Bisomo",
+    "tryAgain": "Ongera Ugerageze"
+  },
+  "notifications": {
+    "title": "Imenyesha Yanjye",
+    "all": "Byose",
+    "achievements": "Ibyacubahiwe",
+    "reminders": "Ibyibutsa",
+    "empty": "Nta {filter} imenyesha ifite",
+    "emptySubtitle": "Soza amasomo n'ibizamini kugira ngo ubone ibyacubahiwe!",
+    "quizPassed": "Ikizamini Cyanyuzwe",
+    "quizAttempt": "Gerageza Ikizamini",
+    "moduleCompleted": "Ishami Ryarangiye!",
+    "dailyReminder": "Igibutsa cya Buri Munsi",
+    "safetyTip": "Inama y'Umutekano"
+  },
+  "achievements": {
+    "title": "Ibyacubahiwe Byanjye",
+    "moduleProgress": "Iterambere ry'Ibisomo",
+    "quizResults": "Ibisubizo by'Ibizamini",
+    "earnedBadges": "Impeta Zabonetse",
+    "lessonsCount": "{done} / {total} Amasomo Arangiye",
+    "keepLearning": "Komeza Kwiga",
+    "noProgress": "Tangira ishami kugira ngo urebe iterambere ryawe.",
+    "badges": {
+      "wordMaster": "Inzobere ya Word",
+      "excelGuru": "Inzobere ya Excel",
+      "emailPro": "Inzobere y'Imeri",
+      "safetyHero": "Intwari y'Umutekano",
+      "perfectScore": "Amanota Asumba",
+      "allModules": "Ibisomo Byose"
+    }
+  },
+  "profile": {
+    "title": "Umwirondoro Wanjye",
+    "resumeLesson": "Komeza Isomo",
+    "offlineBanner": "Uri mu buryo bw'ibibukwa",
+    "settings": "Igenamiterere",
+    "language": "Ururimi",
+    "reminders": "Ibyibutsa bya Buri Munsi",
+    "offlineMode": "Buryo bw'Ibibukwa"
+  },
+  "settings": {
+    "title": "Igenamiterere",
+    "student": "Umunyeshuri wa Dijitali",
+    "appearance": "Isura",
+    "darkMode": "Buryo Bwizirwa",
+    "connectionStorage": "Gutumanaho n'Ububiko",
+    "offlineDownloads": "Gukurura Ibibukwa",
+    "offlineSubtitle": "Bika amasomo kugira ngo wige utunze interineti",
+    "dataUsage": "Buryo bwo Gukoresha Amakuru",
+    "dataUsageSubtitle": "Koresha amakuru make ugabanya ireme ry'amashusho",
+    "personalization": "Guhindura nk'Uko Ushaka",
+    "reminders": "Ibyibutsa bya Buri Munsi",
+    "language": "Ururimi",
+    "dailyGoal": "Intego y'Kwiga ya Buri Munsi",
+    "dailyGoalSubtitle": "Iminota {minutes} ku munsi",
+    "selectLanguage": "Hitamo Ururimi",
+    "selectGoal": "Intego y'Kwiga ya Buri Munsi",
+    "selectGoalSubtitle": "Iminota ingahe ushaka kwiga buri munsi?",
+    "minutes": "Iminota {count}",
+    "support": "Ubufasha",
+    "helpCenter": "Ikigo cy'Ubufasha",
+    "about": "Ibirebana n'App",
+    "version": "Verisiyo 2.4.0 (Rwanda Dijitali)"
+  },
+  "parent": {
+    "dashboard": "Imbaho y'Umubyeyi",
+    "yourChildren": "Abana Bawe",
+    "lastActive": "Yagize igikorwa {time}",
+    "noActivity": "Nta gikorwa kigeze",
+    "noChildren": "Nta mwana uhurizwaho",
+    "linkChild": "Huza Konti y'Umwana Wawe",
+    "linkChildSubtitle": "Injiza imeri ya konti y'umwana wawe ya Tumenye kugira ngo urebe uko kwiga kwagenze.",
+    "childEmail": "Aderesi ya imeri y'umwana",
+    "linkAccount": "Huza Konti y'Umwana",
+    "linking": "Guhuza...",
+    "linkAnother": "Huza umwana wundi",
+    "overall": "rusange",
+    "lessons": "Amasomo",
+    "quizzesPassed": "Ibizamini\nByanyuzwe",
+    "modulesDone": "Ibisomo\nByarangiye",
+    "activity": "Ibikorwa",
+    "account": "Konti",
+    "home": "Ahabanza",
+    "childLinked": "Umwana Uhurizwaho",
+    "childrenLinked": "Abana Bahurizwaho",
+    "avgProgress": "Iterambere Ryo Hagati",
+    "moduleDone": "Ishami Ryarangiye",
+    "modulesDonePlural": "Ibisomo Byarangiye"
+  },
+  "admin": {
+    "dashboard": "Imbaho y'Umuyobozi",
+    "students": "Abanyeshuri",
+    "curriculum": "Gahunda y'Amasomo"
+  }
+}

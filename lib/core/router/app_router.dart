@@ -24,6 +24,9 @@ import '../../features/admin/presentation/screens/admin_curriculum_screen.dart';
 import '../../features/admin/presentation/screens/admin_add_lesson_screen.dart';
 import '../../features/admin/presentation/screens/admin_add_quiz_screen.dart';
 import '../../features/admin/presentation/screens/admin_add_module_screen.dart';
+import '../../features/admin/presentation/screens/admin_profile_screen.dart';
+import '../../features/auth/presentation/screens/email_verification_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../models/module_model.dart';
 import '../../features/admin/presentation/widgets/admin_scaffold.dart';
 import '../../shared/widgets/main_scaffold.dart';
@@ -48,12 +51,20 @@ abstract class AppRoutes {
   static const adminStudents = '/admin/students';
   static const adminStudentDetail = '/admin/students/:uid';
   static const adminCurriculum = '/admin/curriculum';
+  static const adminProfile = '/admin/profile';
   static const adminAddLesson = '/admin/add-lesson';
   static const adminAddQuiz = '/admin/add-quiz';
   static const adminAddModule = '/admin/add-module';
+  static const emailVerification = '/email-verification';
+  static const forgotPassword = '/forgot-password';
 }
 
-const _authRoutes = {AppRoutes.welcome, AppRoutes.login, AppRoutes.register};
+const _authRoutes = {
+  AppRoutes.welcome,
+  AppRoutes.login,
+  AppRoutes.register,
+  AppRoutes.forgotPassword,
+};
 
 /// Notifies GoRouter to re-evaluate redirects whenever the current user's
 /// role stream emits (e.g. after sign-in, role loaded, sign-out).
@@ -76,15 +87,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.welcome,
     refreshListenable: notifier,
     redirect: (context, state) {
-      final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      final isLoggedIn = firebaseUser != null;
       final loc = state.matchedLocation;
       final onAuthRoute = _authRoutes.contains(loc);
       final onAdminRoute = loc.startsWith('/admin');
+      final onVerifyRoute = loc == AppRoutes.emailVerification;
 
-      // Not logged in → always go to welcome
+      // Not logged in → always go to welcome (verification screen also needs auth)
       if (!isLoggedIn && !onAuthRoute) return AppRoutes.welcome;
 
       if (isLoggedIn) {
+        final isEmailVerified = firebaseUser.emailVerified;
+        final isGoogleUser = firebaseUser.providerData
+            .any((p) => p.providerId == 'google.com');
+        final needsVerification = !isEmailVerified && !isGoogleUser;
+
+        // Unverified email user → force to verification screen
+        if (needsVerification && !onVerifyRoute) {
+          return AppRoutes.emailVerification;
+        }
+
         final userAsync = ref.read(currentUserStreamProvider);
 
         // Role still loading — stay put and wait for next notification
@@ -94,6 +117,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // Firestore doc not created yet (right after registration) — wait
         if (role == null) return null;
+
+        // Verified user on verification screen → redirect to role home
+        if (onVerifyRoute && !needsVerification) {
+          if (role == 'admin') return AppRoutes.admin;
+          if (role == 'parent') return AppRoutes.parent;
+          return AppRoutes.home;
+        }
 
         // On an auth screen while logged in → redirect to role home
         if (onAuthRoute) {
@@ -174,6 +204,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: AppRoutes.adminCurriculum,
               builder: (_, __) => const AdminCurriculumScreen()),
+          GoRoute(
+              path: AppRoutes.adminProfile,
+              builder: (_, __) => const AdminProfileScreen()),
         ],
       ),
       // Student detail — no bottom nav
@@ -212,6 +245,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             quiz: extra['quiz'],
           );
         },
+      ),
+      // Email verification gate — no bottom nav
+      GoRoute(
+        path: AppRoutes.emailVerification,
+        builder: (_, __) => const EmailVerificationScreen(),
+      ),
+      // Forgot password — no bottom nav
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (_, __) => const ForgotPasswordScreen(),
       ),
     ],
   );

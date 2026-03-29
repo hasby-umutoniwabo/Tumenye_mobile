@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/models/lesson_model.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/firestore_providers.dart';
+import '../../../../core/providers/preferences_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -68,11 +71,11 @@ class HomeScreen extends ConsumerWidget {
       currentCardIsNew = completedIds.length < sortedModules.length;
     }
 
-    // Notification badge count — new quiz results (last 24h) + recent completions
-    final now = DateTime.now();
+    // Notification badge count — items newer than the last time user opened notifications
+    final lastSeen = ref.watch(notifLastSeenProvider);
     final notifCount =
-        quizResults.where((r) => now.difference(r.attemptedAt).inHours < 24).length +
-        progressList.where((p) => p.isCompleted && now.difference(p.lastAccessed).inHours < 48).length;
+        quizResults.where((r) => r.attemptedAt.isAfter(lastSeen)).length +
+        progressList.where((p) => p.isCompleted && p.lastAccessed.isAfter(lastSeen)).length;
 
     final displayName = user?.displayName?.split(' ').first ??
         user?.email?.split('@').first ??
@@ -106,14 +109,15 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _TopBar extends StatelessWidget {
+class _TopBar extends ConsumerWidget {
   final String name;
   final int streak;
   final int notifCount;
   const _TopBar({required this.name, required this.streak, required this.notifCount});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final avatarUrl = ref.watch(currentUserStreamProvider).valueOrNull?.avatarUrl;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
       child: Row(children: [
@@ -122,7 +126,16 @@ class _TopBar extends StatelessWidget {
             height: 42,
             decoration: const BoxDecoration(
                 color: AppColors.accentOrange, shape: BoxShape.circle),
-            child: const Icon(Icons.person, color: Colors.white, size: 24)),
+            child: ClipOval(
+              child: avatarUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: avatarUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => const Icon(
+                          Icons.person, color: Colors.white, size: 24),
+                    )
+                  : const Icon(Icons.person, color: Colors.white, size: 24),
+            )),
         const SizedBox(width: 12),
         Expanded(
             child: Column(
@@ -238,15 +251,14 @@ class _CurrentModuleCard extends StatelessWidget {
 }
 
 class _DailyGoalCard extends ConsumerWidget {
-  static const int _goalMinutes = 30;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final goalMinutes = ref.watch(dailyGoalProvider);
     final todayMins = ref.watch(todayScreenTimeProvider).value ?? 0;
-    final done = todayMins.clamp(0, _goalMinutes);
-    final progress = done / _goalMinutes;
-    final remaining = _goalMinutes - done;
-    final statusText = done >= _goalMinutes
+    final done = todayMins.clamp(0, goalMinutes);
+    final progress = done / goalMinutes;
+    final remaining = goalMinutes - done;
+    final statusText = done >= goalMinutes
         ? 'Goal reached! 🎉'
         : remaining <= 5
             ? 'Almost there! 🔥'
@@ -260,7 +272,7 @@ class _DailyGoalCard extends ConsumerWidget {
             color: context.primaryLightColor,
             borderRadius: BorderRadius.circular(16)),
         child: Row(children: [
-          done >= _goalMinutes
+          done >= goalMinutes
               ? Container(
                   width: 52,
                   height: 52,
@@ -279,7 +291,7 @@ class _DailyGoalCard extends ConsumerWidget {
                             AppColors.primary.withValues(alpha: 0.2),
                         valueColor:
                             const AlwaysStoppedAnimation(AppColors.primary)),
-                    Text('$done/$_goalMinutes',
+                    Text('$done/$goalMinutes',
                         style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -306,7 +318,7 @@ class _DailyGoalCard extends ConsumerWidget {
                               color: AppColors.primary)),
                     ]),
                 const SizedBox(height: 3),
-                Text('$_goalMinutes minutes of learning',
+                Text('$goalMinutes minutes of learning',
                     style: Theme.of(context).textTheme.bodySmall),
               ])),
         ]),
@@ -331,8 +343,8 @@ class _QuickAccess extends StatelessWidget {
           _QBtn(Icons.library_books_outlined, 'Library',
               AppColors.accentBlue, () => context.go(AppRoutes.modules)),
           const SizedBox(width: 12),
-          _QBtn(Icons.sports_esports_outlined, 'Games',
-              AppColors.accentPurple, () {}),
+          _QBtn(Icons.emoji_events_outlined, 'Achievements',
+              AppColors.accentOrange, () => context.push(AppRoutes.achievements)),
         ]),
       ]),
     );

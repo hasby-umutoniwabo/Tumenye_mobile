@@ -47,7 +47,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                                   .textTheme
                                   .bodySmall
                                   ?.copyWith(
-                                      color: AppColors.textSecondary)),
+                                      color: context.textSecondaryColor)),
                           Text('Admin Dashboard',
                               style: Theme.of(context)
                                   .textTheme
@@ -115,7 +115,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                           return Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                                color: AppColors.surface,
+                                color: context.cardColor,
                                 borderRadius: BorderRadius.circular(16)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,9 +130,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis),
                                 Text('${mod.totalLessons} lessons',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 10,
-                                        color: AppColors.textSecondary)),
+                                        color: context.textSecondaryColor)),
                               ],
                             ),
                           );
@@ -164,11 +164,11 @@ class AdminDashboardScreen extends ConsumerWidget {
                 child: Text('Error loading activity: $e'),
               )),
               data: (activities) => activities.isEmpty
-                  ? const SliverToBoxAdapter(
+                  ? SliverToBoxAdapter(
                       child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text('No recent activity yet.',
-                          style: TextStyle(color: AppColors.textSecondary)),
+                          style: TextStyle(color: context.textSecondaryColor)),
                     ))
                   : SliverPadding(
                       padding:
@@ -222,7 +222,7 @@ class _ActivityRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-          color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+          color: context.cardColor, borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
           Container(
@@ -242,8 +242,8 @@ class _ActivityRow extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w600)),
                 Text(timeAgo,
-                    style: const TextStyle(
-                        fontSize: 11, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: 11, color: context.textSecondaryColor)),
               ],
             ),
           ),

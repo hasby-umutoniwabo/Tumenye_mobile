@@ -56,8 +56,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         await FirestoreService().linkChildByEmail(
             user.uid, _childEmail.text.trim());
       }
+      // Send verification email for email/password registrations
+      await auth.sendEmailVerification();
       if (!mounted) return;
-      _navigateByRole(user.role);
+      // Go to verification gate — not role home
+      context.go(AppRoutes.emailVerification);
     } on FirebaseAuthException catch (e) {
       setState(() => _errorMessage = AuthService.friendlyError(e));
     } catch (_) {
@@ -101,7 +104,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -128,7 +131,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.surfaceColor,
                     borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   children: ['student', 'parent', 'teacher'].map((r) {
@@ -152,7 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       fontWeight: FontWeight.w600,
                                       color: on
                                           ? Colors.white
-                                          : AppColors.textSecondary))),
+                                          : context.textSecondaryColor))),
                         ),
                       ),
                     );
@@ -193,9 +196,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
                   onSuffixTap: () => setState(() => _hidePass = !_hidePass),
-                  validator: (v) => (v == null || v.length < 6)
-                      ? 'Password must be at least 6 characters'
-                      : null),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Password is required';
+                    if (v.length < 8) { return 'Password must be at least 8 characters'; }
+                    if (!v.contains(RegExp(r'[A-Z]'))) { return 'Must contain an uppercase letter'; }
+                    if (!v.contains(RegExp(r'[a-z]'))) { return 'Must contain a lowercase letter'; }
+                    if (!v.contains(RegExp(r'[0-9]'))) { return 'Must contain a number'; }
+                    return null;
+                  }),
               const SizedBox(height: 16),
               AppTextField(
                   label: 'CONFIRM PASSWORD',

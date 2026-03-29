@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/firestore_providers.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../../core/models/module_model.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 
 class ParentActivityScreen extends ConsumerStatefulWidget {
   const ParentActivityScreen({super.key});
@@ -152,6 +153,7 @@ class _ActivityList extends ConsumerWidget {
           childName: child.name.isNotEmpty ? child.name : child.email,
           childInitial: (child.name.isNotEmpty ? child.name : child.email)[0]
               .toUpperCase(),
+          childAvatarUrl: child.avatarUrl,
           icon: r.passed ? Icons.check_circle_outline : Icons.replay_outlined,
           color: r.passed ? AppColors.primary : AppColors.accentOrange,
           title: r.passed ? 'Passed a quiz' : 'Attempted a quiz',
@@ -172,6 +174,7 @@ class _ActivityList extends ConsumerWidget {
           childName: child.name.isNotEmpty ? child.name : child.email,
           childInitial: (child.name.isNotEmpty ? child.name : child.email)[0]
               .toUpperCase(),
+          childAvatarUrl: child.avatarUrl,
           icon: Icons.emoji_events_outlined,
           color: AppColors.accentYellow,
           title: 'Completed a module!',
@@ -191,6 +194,7 @@ class _ActivityList extends ConsumerWidget {
           childName: child.name.isNotEmpty ? child.name : child.email,
           childInitial: (child.name.isNotEmpty ? child.name : child.email)[0]
               .toUpperCase(),
+          childAvatarUrl: child.avatarUrl,
           icon: Icons.play_circle_outline,
           color: mod != null ? Color(mod.colorValue) : AppColors.accentBlue,
           title: 'Studied a lesson',
@@ -276,18 +280,10 @@ class _ActivityRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // Child avatar
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-              color: AppColors.accentOrange, shape: BoxShape.circle),
-          child: Center(
-            child: Text(item.childInitial,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700)),
-          ),
+        UserAvatar(
+          name: item.childName,
+          avatarUrl: item.childAvatarUrl,
+          size: 36,
         ),
         const SizedBox(width: 10),
         // Event icon
@@ -379,12 +375,14 @@ class _EmptyState extends StatelessWidget {
 
 class _ActivityItem {
   final String childName, childInitial, title, body, type;
+  final String? childAvatarUrl;
   final IconData icon;
   final Color color;
   final DateTime time;
   const _ActivityItem({
     required this.childName,
     required this.childInitial,
+    this.childAvatarUrl,
     required this.icon,
     required this.color,
     required this.title,

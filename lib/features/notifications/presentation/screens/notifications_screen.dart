@@ -18,6 +18,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   static const _filters = ['All', 'Achievements', 'Reminders'];
 
   @override
+  void initState() {
+    super.initState();
+    // Mark all current notifications as seen — clears the home screen badge
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notifLastSeenProvider.notifier).markSeen();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final quizResults = ref.watch(userQuizResultsProvider).value ?? [];
     final progressList = ref.watch(allProgressProvider).value ?? [];

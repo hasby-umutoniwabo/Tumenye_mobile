@@ -80,6 +80,22 @@ class AuthService {
     await _auth.sendPasswordResetEmail(email: email.trim());
   }
 
+  // ─── Email Verification ──────────────────────────────────────────────────────
+
+  Future<void> sendEmailVerification() async {
+    await _auth.currentUser?.sendEmailVerification();
+  }
+
+  /// Reloads the Firebase user from the server, then returns whether the
+  /// email is now verified. Must re-read currentUser after reload() because
+  /// the old User object reference is not mutated.
+  Future<bool> reloadAndCheckVerification() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    await user.reload();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
   // ─── Sign Out ────────────────────────────────────────────────────────────────
 
   Future<void> signOut() async {

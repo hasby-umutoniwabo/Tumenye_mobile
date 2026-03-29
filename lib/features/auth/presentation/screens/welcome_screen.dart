@@ -3,14 +3,30 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/router/app_router.dart';
 
-const _slides = [
-  _Slide('Unlock Your\nDigital Future',
-      'Join thousands of Rwandan students learning the skills of tomorrow, today.'),
-  _Slide('Learn at\nYour Own Pace',
-      'Bite-sized lessons in Kinyarwanda and English. Study offline, anytime.'),
-  _Slide('Track Your\nProgress',
-      'Earn badges, maintain streaks, and watch your digital literacy grow.'),
-];
+class _Slide {
+  final String title;
+  final String body;
+  final Widget visual;
+  const _Slide(this.title, this.body, this.visual);
+}
+
+List<_Slide> _buildSlides(BuildContext context) => [
+      _Slide(
+        'Unlock Your\nDigital Future',
+        'Join thousands of Rwandan students learning MS Office, internet safety, and digital skills.',
+        _ImageVisual(context),
+      ),
+      _Slide(
+        'Learn at\nYour Own Pace',
+        'Bite-sized lessons in Kinyarwanda, English, and French. Study offline, anytime.',
+        _PaceVisual(context),
+      ),
+      _Slide(
+        'Track Your\nProgress',
+        'Earn badges, maintain streaks, and watch your digital literacy grow every day.',
+        _ProgressVisual(context),
+      ),
+    ];
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -18,219 +34,309 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen>
-    with SingleTickerProviderStateMixin {
-  final int _page = 0;
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 700));
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _slide = Tween(begin: const Offset(0, 0.12), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
-    _ctrl.forward();
-  }
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  final PageController _pageController = PageController();
+  int _page = 0;
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _pageController.dispose();
     super.dispose();
+  }
+
+  void _next() {
+    if (_page < 2) {
+      _pageController.nextPage(
+          duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+    } else {
+      context.go(AppRoutes.register);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final slides = _buildSlides(context);
+    final isLast = _page == slides.length - 1;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fade,
-          child: SlideTransition(
-            position: _slide,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 24),
-                  Text('TUMENYE',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineLarge
-                          ?.copyWith(letterSpacing: 4)),
-                  const SizedBox(height: 28),
-                  Expanded(child: _HeroCard()),
-                  const SizedBox(height: 28),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 350),
-                    child: Column(
-                      key: ValueKey(_page),
-                      children: [
-                        Text(
-                          _slides[_page].title,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(height: 1.3),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _slides[_page].body,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _slides.length,
-                      (i) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: i == _page ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: i == _page
-                              ? AppColors.primary
-                              : AppColors.border,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  ElevatedButton(
-                    onPressed: () => context.go(AppRoutes.register),
-                    child: const Text('Get Started'),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Already have an account? ',
-                          style: Theme.of(context).textTheme.bodyMedium),
-                      GestureDetector(
-                        onTap: () => context.go(AppRoutes.login),
-                        child: const Text('Log In',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                ],
+        child: Column(
+          children: [
+            // ── Skip button ──────────────────────────────────────────────
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 12, 20, 0),
+                child: TextButton(
+                  onPressed: () => context.go(AppRoutes.register),
+                  child: Text('Skip',
+                      style: TextStyle(
+                          color: context.textSecondaryColor,
+                          fontWeight: FontWeight.w600)),
+                ),
               ),
             ),
-          ),
+
+            // ── Slides ───────────────────────────────────────────────────
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: slides.length,
+                onPageChanged: (i) => setState(() => _page = i),
+                itemBuilder: (_, i) => _SlidePage(slide: slides[i]),
+              ),
+            ),
+
+            // ── Dots ─────────────────────────────────────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                slides.length,
+                (i) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: i == _page ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: i == _page ? AppColors.primary : AppColors.border,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            // ── Primary action button ────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ElevatedButton(
+                onPressed: _next,
+                child: Text(isLast ? 'Get Started' : 'Next'),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // ── Log In link ──────────────────────────────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Already have an account? ',
+                    style: Theme.of(context).textTheme.bodyMedium),
+                GestureDetector(
+                  onTap: () => context.go(AppRoutes.login),
+                  child: const Text('Log In',
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+          ],
         ),
       ),
     );
   }
 }
 
-class _HeroCard extends StatelessWidget {
+class _SlidePage extends StatelessWidget {
+  final _Slide slide;
+  const _SlidePage({required this.slide});
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(28)),
-      child: Stack(
-        alignment: Alignment.center,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
         children: [
-          Positioned(
-              top: 24,
-              right: 28,
-              child: _Dot(60, AppColors.primary.withValues(alpha: 0.18))),
-          Positioned(
-              bottom: 36,
-              left: 28,
-              child: _Dot(40, AppColors.accentBlue.withValues(alpha: 0.14))),
-          Positioned(
-              top: 60,
-              left: 16,
-              child: _Dot(20, AppColors.accentYellow.withValues(alpha: 0.2))),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 130,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        blurRadius: 24,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.laptop_mac,
-                      size: 52, color: AppColors.primary),
-                ),
-                const SizedBox(height: 24),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _Avatar(AppColors.accentOrange, 0),
-                    _Avatar(AppColors.primary, -10),
-                    _Avatar(AppColors.accentBlue, -10),
-                  ],
-                ),
-              ],
+          const SizedBox(height: 8),
+          // Visual card
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  color: context.primaryLightColor,
+                  borderRadius: BorderRadius.circular(28)),
+              child: slide.visual,
             ),
           ),
+          const SizedBox(height: 28),
+          // Title
+          Text(
+            slide.title,
+            textAlign: TextAlign.center,
+            style:
+                Theme.of(context).textTheme.headlineMedium?.copyWith(height: 1.3),
+          ),
+          const SizedBox(height: 12),
+          // Body
+          Text(
+            slide.body,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 }
 
-class _Dot extends StatelessWidget {
-  final double size;
-  final Color color;
-  const _Dot(this.size, this.color);
+// ── Slide 1: welcome.png ─────────────────────────────────────────────────────
+
+class _ImageVisual extends StatelessWidget {
+  const _ImageVisual(BuildContext context);
+
   @override
-  Widget build(BuildContext context) => Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: Image.asset(
+        'assets/images/welcome.png',
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+    );
+  }
 }
 
-class _Avatar extends StatelessWidget {
+// ── Slide 2: language / pace illustration ────────────────────────────────────
+
+class _PaceVisual extends StatelessWidget {
+  const _PaceVisual(BuildContext context);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8))
+                ],
+              ),
+              child: const Icon(Icons.menu_book_rounded,
+                  size: 60, color: AppColors.primary),
+            ),
+            const SizedBox(height: 24),
+            // Language pills
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _Pill('English', AppColors.accentBlue),
+                _Pill('Kinyarwanda', AppColors.primary),
+                _Pill('Français', AppColors.accentPurple),
+                _Pill('Offline ✓', AppColors.accentOrange),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Slide 3: achievement / progress illustration ──────────────────────────────
+
+class _ProgressVisual extends StatelessWidget {
+  const _ProgressVisual(BuildContext context);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Trophy
+            Container(
+              width: 100,
+              height: 100,
+              decoration: const BoxDecoration(
+                  color: AppColors.accentYellow, shape: BoxShape.circle),
+              child: const Icon(Icons.emoji_events_rounded,
+                  size: 56, color: Colors.white),
+            ),
+            const SizedBox(height: 20),
+            // Stat row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _StatBox(Icons.bolt, '12', 'Lessons'),
+                const SizedBox(width: 12),
+                _StatBox(Icons.star, '85%', 'Quiz avg'),
+                const SizedBox(width: 12),
+                _StatBox(Icons.local_fire_department, '7', 'Streak'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  final String label;
   final Color color;
-  final double offset;
-  const _Avatar(this.color, this.offset);
+  const _Pill(this.label, this.color);
+
   @override
   Widget build(BuildContext context) => Container(
-        margin: EdgeInsets.only(left: offset < 0 ? offset.abs() : 0),
-        width: 46,
-        height: 46,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2.5),
-        ),
-        child: const Icon(Icons.person, color: Colors.white, size: 24),
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.3))),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600, color: color)),
       );
 }
 
-class _Slide {
-  final String title, body;
-  const _Slide(this.title, this.body);
+class _StatBox extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  const _StatBox(this.icon, this.value, this.label);
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(12)),
+        child: Column(children: [
+          Icon(icon, size: 20, color: AppColors.primary),
+          const SizedBox(height: 4),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textSecondary)),
+        ]),
+      );
 }
