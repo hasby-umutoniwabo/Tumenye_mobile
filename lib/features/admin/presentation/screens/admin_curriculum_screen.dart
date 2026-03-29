@@ -46,7 +46,7 @@ class _AdminCurriculumScreenState
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: context.primaryLightColor,
                     borderRadius: BorderRadius.circular(20)),
                 child: Text('$lessonCount lessons total',
                     style: const TextStyle(
@@ -131,7 +131,7 @@ class _ModuleCard extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(16)),
       child: Column(children: [
         // Module header — tap to expand
@@ -173,9 +173,9 @@ class _ModuleCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text('${module.totalLessons} lessons',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary)),
+                            color: context.textSecondaryColor)),
                   ]),
                 ]),
               ),
@@ -272,11 +272,11 @@ class _ModuleCard extends ConsumerWidget {
                   style: const TextStyle(color: AppColors.accentRed)),
             ),
             data: (lessons) => lessons.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(16),
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Text('No lessons yet. Tap + to add one.',
                         style: TextStyle(
-                            color: AppColors.textSecondary, fontSize: 13)),
+                            color: context.textSecondaryColor, fontSize: 13)),
                   )
                 : Column(
                     children: lessons
@@ -342,8 +342,8 @@ class _LessonRow extends ConsumerWidget {
                 style: const TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w600)),
             Text('~${lesson.estimatedMinutes} min',
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textSecondary)),
+                style: TextStyle(
+                    fontSize: 11, color: context.textSecondaryColor)),
           ]),
         ),
         // Translation indicator
@@ -367,7 +367,7 @@ class _LessonRow extends ConsumerWidget {
               decoration: BoxDecoration(
                   color: existingQuiz != null
                       ? AppColors.primary.withValues(alpha: 0.1)
-                      : AppColors.border.withValues(alpha: 0.5),
+                      : context.borderColor.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.quiz_outlined,

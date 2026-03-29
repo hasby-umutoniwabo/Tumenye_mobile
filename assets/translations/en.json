@@ -1,0 +1,193 @@
+{
+  "common": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "signOut": "Sign Out",
+    "signOutTitle": "Sign Out",
+    "signOutConfirm": "Are you sure you want to sign out?",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "viewAll": "View all",
+    "back": "Back",
+    "link": "Link",
+    "unlink": "Unlink",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "welcome": {
+      "title": "Unlock Your\nDigital Future",
+      "subtitle": "Learn MS Office, Internet Safety and Digital Skills in Kinyarwanda",
+      "getStarted": "Get Started",
+      "login": "Log In"
+    },
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to continue learning",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign In",
+      "google": "Continue with Google",
+      "noAccount": "Don't have an account?",
+      "register": "Register"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join thousands of digital learners",
+      "name": "Full name",
+      "email": "Email address",
+      "password": "Password (min. 6 characters)",
+      "role": "I am a",
+      "roleStudent": "Student",
+      "roleParent": "Parent",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign In"
+    }
+  },
+  "home": {
+    "greeting": "Muraho, {name}! 👋",
+    "subtitle": "Ready to learn?",
+    "currentModule": "CURRENT MODULE",
+    "continue": "Continue →",
+    "quickAccess": "Quick Access",
+    "library": "Library",
+    "achievements": "Achievements",
+    "latestBadge": "Latest Badge",
+    "nextTopic": "NEXT TOPIC",
+    "dailyGoal": "Daily Goal",
+    "goalReached": "Goal reached! 🎉",
+    "almostThere": "Almost there! 🔥",
+    "minLeft": "{count} min left",
+    "minutes": "{count} minutes of learning"
+  },
+  "modules": {
+    "title": "My Modules",
+    "progress": "{done}/{total} lessons",
+    "completed": "Completed",
+    "start": "Start",
+    "resume": "Resume",
+    "difficulty": {
+      "Beginner": "Beginner",
+      "Intermediate": "Intermediate",
+      "Advanced": "Advanced"
+    }
+  },
+  "lesson": {
+    "translation": "Kinyarwanda",
+    "showTranslation": "Show Translation",
+    "hideTranslation": "Hide Translation",
+    "complete": "Mark as Complete",
+    "next": "Next Lesson",
+    "quiz": "Take Quiz",
+    "estimatedTime": "{count} min read"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "question": "Question {current} of {total}",
+    "submit": "Submit Answer",
+    "next": "Next Question",
+    "result": {
+      "passed": "Congratulations! You Passed! 🎉",
+      "failed": "Keep Practicing!",
+      "score": "You scored {score} out of {total}",
+      "passScore": "Passing score: {score}%"
+    },
+    "backToModules": "Back to Modules",
+    "tryAgain": "Try Again"
+  },
+  "notifications": {
+    "title": "My Notifications",
+    "all": "All",
+    "achievements": "Achievements",
+    "reminders": "Reminders",
+    "empty": "No {filter} notifications yet",
+    "emptySubtitle": "Complete lessons and quizzes to earn achievements!",
+    "quizPassed": "Quiz Passed",
+    "quizAttempt": "Quiz Attempt",
+    "moduleCompleted": "Module Completed!",
+    "dailyReminder": "Daily Reminder",
+    "safetyTip": "Safety Tip"
+  },
+  "achievements": {
+    "title": "My Achievements",
+    "moduleProgress": "Module Progress",
+    "quizResults": "Quiz Results",
+    "earnedBadges": "Earned Badges",
+    "lessonsCount": "{done} / {total} Lessons Done",
+    "keepLearning": "Keep Learning",
+    "noProgress": "Start a module to track your progress.",
+    "badges": {
+      "wordMaster": "Word Master",
+      "excelGuru": "Excel Guru",
+      "emailPro": "Email Pro",
+      "safetyHero": "Safety Hero",
+      "perfectScore": "Perfect Score",
+      "allModules": "All Modules"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "resumeLesson": "Resume Lesson",
+    "offlineBanner": "You are in offline mode",
+    "settings": "Settings",
+    "language": "Language",
+    "reminders": "Daily Reminders",
+    "offlineMode": "Offline Mode"
+  },
+  "settings": {
+    "title": "Settings",
+    "student": "Digital Literacy Student",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "connectionStorage": "Connection & Storage",
+    "offlineDownloads": "Offline Downloads",
+    "offlineSubtitle": "Save lessons to study without internet",
+    "dataUsage": "Data Usage Mode",
+    "dataUsageSubtitle": "Use less data by lowering video quality",
+    "personalization": "Personalization",
+    "reminders": "Daily Reminders",
+    "language": "Language",
+    "dailyGoal": "Daily Learning Goal",
+    "dailyGoalSubtitle": "{minutes} minutes per day",
+    "selectLanguage": "Select Language",
+    "selectGoal": "Daily Learning Goal",
+    "selectGoalSubtitle": "How many minutes do you want to learn each day?",
+    "minutes": "{count} minutes",
+    "support": "Support",
+    "helpCenter": "Help Center",
+    "about": "About the App",
+    "version": "Version 2.4.0 (Rwanda Digital Ed)"
+  },
+  "parent": {
+    "dashboard": "Parent Dashboard",
+    "yourChildren": "Your Children",
+    "lastActive": "Last active {time}",
+    "noActivity": "No activity yet",
+    "noChildren": "No children linked yet",
+    "linkChild": "Link Your Child's Account",
+    "linkChildSubtitle": "Enter your child's Tumenye account email to start monitoring their learning progress.",
+    "childEmail": "Child's email address",
+    "linkAccount": "Link Child Account",
+    "linking": "Linking…",
+    "linkAnother": "Link another child",
+    "overall": "overall",
+    "lessons": "Lessons",
+    "quizzesPassed": "Quizzes\nPassed",
+    "modulesDone": "Modules\nDone",
+    "activity": "Activity Feed",
+    "account": "Account",
+    "home": "Home",
+    "childLinked": "Child Linked",
+    "childrenLinked": "Children Linked",
+    "avgProgress": "Avg Progress",
+    "moduleDone": "Module Done",
+    "modulesDonePlural": "Modules Done"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "students": "Students",
+    "curriculum": "Curriculum"
+  }
+}

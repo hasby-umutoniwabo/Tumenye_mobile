@@ -116,7 +116,7 @@ class AchievementsScreen extends ConsumerWidget {
                   children: progressList
                       .map((p) => _Bar(
                             _moduleLabel(p.moduleId),
-                            p.percent / 100,
+                            p.percent,
                           ))
                       .toList()),
           ]),

@@ -81,7 +81,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -157,10 +157,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => _showForgot(context),
+                    onPressed: () => context.push(AppRoutes.forgotPassword),
                     child: const Text('Forgot Password?',
                         style: TextStyle(
-                            fontSize: 13, color: AppColors.textSecondary)),
+                            fontSize: 13, color: AppColors.primary)),
                   ),
                 ),
                 if (_errorMessage != null) ...[
@@ -241,60 +241,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _showForgot(BuildContext context) {
-    final ctrl = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 28,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 28),
-        child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Reset Password',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 8),
-              Text("Enter your email and we'll send a reset link.",
-                  style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 20),
-              TextField(
-                  controller: ctrl,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                      hintText: 'Your email address')),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  final email = ctrl.text.trim();
-                  if (email.isEmpty) return;
-                  Navigator.pop(ctx);
-                  try {
-                    await ref
-                        .read(authServiceProvider)
-                        .sendPasswordReset(email);
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Reset link sent! Check your inbox.'),
-                        backgroundColor: AppColors.primary));
-                  } catch (_) {
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Could not send reset email.'),
-                        backgroundColor: Colors.red));
-                  }
-                },
-                child: const Text('Send Reset Link'),
-              ),
-            ]),
-      ),
-    );
-  }
 }

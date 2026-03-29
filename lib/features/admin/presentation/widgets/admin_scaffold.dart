@@ -14,13 +14,14 @@ class AdminScaffold extends StatelessWidget {
     int currentIndex = 0;
     if (location.startsWith(AppRoutes.adminStudents)) currentIndex = 1;
     if (location.startsWith(AppRoutes.adminCurriculum)) currentIndex = 2;
+    if (location.startsWith(AppRoutes.adminProfile)) currentIndex = 3;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: child,
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: AppColors.border))),
+        decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: context.borderColor))),
         child: SafeArea(
           child: SizedBox(
             height: 64,
@@ -44,6 +45,12 @@ class AdminScaffold extends StatelessWidget {
                   label: 'Curriculum',
                   active: currentIndex == 2,
                   onTap: () => context.go(AppRoutes.adminCurriculum),
+                ),
+                _NavBtn(
+                  icon: Icons.person_outline,
+                  label: 'Profile',
+                  active: currentIndex == 3,
+                  onTap: () => context.go(AppRoutes.adminProfile),
                 ),
               ],
             ),

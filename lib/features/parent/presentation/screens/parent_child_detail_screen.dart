@@ -6,6 +6,7 @@ import '../../../../core/models/module_model.dart';
 import '../../../../core/models/progress_model.dart';
 import '../../../../core/models/quiz_result_model.dart';
 import '../../../../core/providers/firestore_providers.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 
 class ParentChildDetailScreen extends ConsumerWidget {
   final UserModel child;
@@ -83,24 +84,10 @@ class ParentChildDetailScreen extends ConsumerWidget {
                       border: Border.all(color: context.borderColor)),
                   child: Column(children: [
                     Row(children: [
-                      Container(
-                        width: 68,
-                        height: 68,
-                        decoration: const BoxDecoration(
-                            color: AppColors.accentOrange,
-                            shape: BoxShape.circle),
-                        child: Center(
-                          child: Text(
-                            (child.name.isNotEmpty
-                                    ? child.name
-                                    : child.email)[0]
-                                .toUpperCase(),
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.w800),
-                          ),
-                        ),
+                      UserAvatar(
+                        name: child.name.isNotEmpty ? child.name : child.email,
+                        avatarUrl: child.avatarUrl,
+                        size: 68,
                       ),
                       const SizedBox(width: 16),
                       Expanded(

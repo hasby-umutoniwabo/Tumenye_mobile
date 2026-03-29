@@ -49,3 +49,6 @@ google-services.json
 GoogleService-Info.plist
 lib/firebase_options.dart
 firebase.json
+
+# App secrets — never commit credentials
+lib/core/constants/secrets.dart
