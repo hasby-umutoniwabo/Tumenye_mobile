@@ -1,9 +1,22 @@
-# Tumenye
+# Tumenye — Digital Literacy App for Rwandan Students
 
 Tumenye is a cross-platform mobile application built with Flutter and Firebase. It is designed to help Rwandan students aged 8–18 build practical digital skills through structured, interactive lessons covering Word Processing, Spreadsheets, Email Communication, and Online Safety. The app runs on Android and iOS from a single codebase and supports English, Kinyarwanda, and French.
 
+> **Group 9 — ALU Mobile Application Development**
+
 ---
 
+## Screenshots
+
+| Welcome | Student Home | Modules | Quiz |
+|---------|-------------|---------|------|
+| ![Welcome](assets/images/screenshots/welcome.jpeg) | ![Home](assets/images/screenshots/home.jpeg) | ![Modules](assets/images/screenshots/modules.jpeg) | ![Quiz](assets/images/screenshots/quiz.jpeg) |
+
+| Admin Dashboard | Parent Dashboard | Settings | Achievements |
+|----------------|-----------------|---------|--------------|
+| ![Admin](assets/images/screenshots/admin.jpeg) | ![Parent](assets/images/screenshots/parent.jpeg) | ![Settings](assets/images/screenshots/settings.jpeg) | ![Achievements](assets/images/screenshots/achivements.jpeg) |
+
+---
 
 ## Features
 
@@ -20,37 +33,159 @@ Tumenye is a cross-platform mobile application built with Flutter and Firebase. 
 | Layer | Technology |
 |-------|------------|
 | Framework | [Flutter](https://flutter.dev) — Dart, stable channel, version 3.19 or higher |
-| State Management | [Riverpod](https://riverpod.dev) |
-| Navigation | [GoRouter](https://pub.dev/packages/go_router) |
+| State Management | [Riverpod](https://riverpod.dev) 2.5 |
+| Navigation | [GoRouter](https://pub.dev/packages/go_router) 13 |
 | Backend | [Firebase](https://firebase.google.com) — Authentication, Firestore, Storage |
-| Offline Storage | [Hive](https://docs.hivedb.dev) |
+| Image Hosting | [Cloudinary](https://cloudinary.com) — avatar uploads |
 | Localization | [easy_localization](https://pub.dev/packages/easy_localization) |
-| Notifications | Firebase Cloud Messaging (FCM) |
 
 ---
 
-## Database Architecture
+## Database Architecture (ERD)
 
-Tumenye uses Cloud Firestore as its primary database, organized into the following top-level collections:
+The database is structured around **3 user roles**: Student, Parent, and Admin/Teacher. All collections are designed for Firestore.
 
-| Collection | Purpose |
-|------------|---------|
-| `users` | User profiles, roles (student / parent / admin), language preference, FCM token |
-| `modules` | Course modules with title, icon, color, and references to constituent lessons |
-| `lessons` | Lesson content including title, body text, difficulty level, and estimated reading time |
-| `quizzes` | Multiple-choice question sets linked to each lesson |
-| `progress` | Per-user record of completed lessons, quiz scores, earned badges, streak count, and total learning time |
-| `quiz_results` | Individual quiz attempt records with score and timestamp |
-| `activity` | Log of student events surfaced in the admin dashboard |
-| `notifications` | Push notification history per user |
+```mermaid
+erDiagram
 
-### Offline Support
+    USER {
+        string uid PK
+        string email
+        string name
+        string role "student | parent | admin"
+        string language "en | rw | fr"
+        string avatarUrl
+        timestamp createdAt
+        timestamp lastLoginAt
+    }
 
-Offline functionality is handled by Hive, which manages three local storage boxes on the device:
+    MODULE {
+        string moduleId PK
+        string title
+        string description
+        string iconKey
+        int order
+        int totalLessons
+        string difficulty "beginner | intermediate | advanced"
+        boolean isOfflineAvailable
+    }
 
-- `LessonsBox` — lesson documents cached by lesson ID. Cached content is served immediately if it is less than seven days old; otherwise a fresh Firestore fetch is made and the cache is updated.
-- `QuizzesBox` — quiz question sets cached by quiz ID.
-- `PendingProgressBox` — progress updates (lesson completions, quiz scores) recorded while offline and flushed to Firestore when the device reconnects.
+    LESSON {
+        string lessonId PK
+        string moduleId FK
+        string title
+        string content
+        string translation
+        int order
+        int estimatedMinutes
+    }
+
+    QUIZ {
+        string quizId PK
+        string lessonId FK
+        string title
+        int passingScore
+    }
+
+    QUESTION {
+        string questionId PK
+        string quizId FK
+        string text
+        array options
+        int correctIndex
+        string explanation
+        int order
+    }
+
+    MODULE_PROGRESS {
+        string progressId PK
+        string userId FK
+        string moduleId FK
+        int completedLessons
+        float percentComplete
+        boolean isCompleted
+        timestamp lastAccessed
+    }
+
+    QUIZ_RESULT {
+        string resultId PK
+        string userId FK
+        string quizId FK
+        int score
+        int total
+        boolean passed
+        timestamp attemptedAt
+    }
+
+    ACHIEVEMENT {
+        string achievementId PK
+        string title
+        string description
+        string conditionType
+        int conditionValue
+    }
+
+    USER_ACHIEVEMENT {
+        string userAchievementId PK
+        string userId FK
+        string achievementId FK
+        timestamp earnedAt
+    }
+
+    PARENT_CHILD {
+        string linkId PK
+        string parentId FK
+        string childId FK
+        timestamp linkedAt
+    }
+
+    NOTIFICATION {
+        string notificationId PK
+        string userId FK
+        string title
+        string body
+        string type
+        boolean read
+        timestamp createdAt
+    }
+
+    MODULE        ||--o{ LESSON           : "contains"
+    LESSON        ||--o| QUIZ             : "has"
+    QUIZ          ||--o{ QUESTION         : "contains"
+    USER          ||--o{ MODULE_PROGRESS  : "tracks"
+    USER          ||--o{ QUIZ_RESULT      : "attempts"
+    MODULE_PROGRESS  }o--|| MODULE        : "for"
+    QUIZ_RESULT      }o--|| QUIZ          : "for"
+    USER          ||--o{ USER_ACHIEVEMENT : "earns"
+    ACHIEVEMENT   ||--o{ USER_ACHIEVEMENT : "awarded via"
+    USER          ||--o{ PARENT_CHILD     : "parent of"
+    USER          ||--o{ PARENT_CHILD     : "child of"
+    USER          ||--o{ NOTIFICATION     : "receives"
+```
+
+### Firestore Collection Structure
+
+```
+/users/{uid}
+/modules/{moduleId}
+/lessons/{lessonId}
+/quizzes/{quizId}
+/progress/{userId}/modules/{moduleId}
+/progress/{userId}/lessons/{lessonId}
+/quizResults/{userId}/{resultId}
+/userAchievements/{userId}/badges/{achievementId}
+/parentLinks/{parentId}/children/{childId}
+/activity/{activityId}
+/screenTime/{userId}/{date}
+/notifications/{userId}/items/{notificationId}
+```
+
+### Key Design Decisions
+
+1. **Denormalized counts** (`totalLessons`) — avoids expensive collection-count queries on low-data connections.
+2. **Composite primary keys** (e.g. `{userId}_{moduleId}`) — enables direct document lookups without queries.
+3. **Subcollections for user data** (`/progress`, `/notifications`) — keeps user data isolated and enables per-user security rules.
+4. **`role` on User** — single source of truth for access control in security rules and GoRouter redirects.
 
 ---
 
@@ -62,20 +197,24 @@ lib/
 ├── core/
 │   ├── constants/             # App-wide constants and shared preference keys
 │   ├── models/                # Data models: User, Module, Lesson, Quiz, Progress
-│   ├── services/              # Firebase service wrappers: Auth, Firestore, Storage
-│   ├── routing/               # GoRouter setup and role-based redirect logic
-│   └── theme/                 # Light and dark theme definitions
+│   ├── providers/             # Riverpod providers (auth, Firestore streams, preferences)
+│   ├── services/              # Firebase service wrappers: Auth, Firestore, ImageUpload
+│   ├── router/                # GoRouter setup and role-based redirect logic
+│   └── theme/                 # Light and dark Material 3 theme definitions
 ├── features/
 │   ├── auth/                  # Login, registration, email verification, password reset
 │   ├── home/                  # Student home dashboard
 │   ├── modules/               # Module list and lesson viewer
+│   ├── lesson/                # Lesson content screen
 │   ├── quiz/                  # Quiz screen and results display
 │   ├── achievements/          # Badge system
+│   ├── notifications/         # Notification centre
+│   ├── profile/               # User profile and avatar
 │   ├── parent/                # Parent dashboard and activity feed
 │   ├── admin/                 # Admin dashboard, curriculum management, student list
-│   └── settings/              # Theme toggle, language selection, daily goal, offline mode
+│   └── settings/              # Theme toggle, language selection, daily goal
 └── shared/
-    └── widgets/               # Reusable UI components shared across features
+    └── widgets/               # Reusable UI components: AppTextField, UserAvatar, etc.
 ```
 
 ---
@@ -86,12 +225,10 @@ lib/
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) — stable channel, version 3.19 or higher
 - Dart SDK (bundled with Flutter)
-- Android Studio (for Android emulation) or Xcode (for iOS)
+- Android Studio or Xcode
 - Git
 - [Firebase CLI](https://firebase.google.com/docs/cli)
 - [FlutterFire CLI](https://firebase.flutter.dev/docs/cli)
-
----
 
 ### Step 1 — Clone the repository
 
@@ -133,7 +270,7 @@ flutterfire configure
 
 ### Step 4 — Add Cloudinary credentials
 
-Profile image uploads use Cloudinary. Create the file `lib/core/constants/secrets.dart` with the following content:
+Profile image uploads use Cloudinary. Create the file `lib/core/constants/secrets.dart`:
 
 ```dart
 class Secrets {
@@ -143,33 +280,12 @@ class Secrets {
 }
 ```
 
-Obtain the values from your Cloudinary dashboard. This file is listed in `.gitignore` and must not be committed to version control.
+A template is available at `lib/core/constants/secrets.example.dart`. This file is listed in `.gitignore` and must not be committed.
 
-### Step 5 — Verify your environment
-
-```bash
-flutter doctor -v
-```
-
-All required dependencies should show a checkmark before proceeding.
-
-### Step 6 — Run the application
+### Step 5 — Run the application
 
 ```bash
-# List available emulators
-flutter emulators
-
-# Launch an emulator
-flutter emulators --launch <emulator_id>
-
-# Run the app
 flutter run
-```
-
-To target a specific device:
-
-```bash
-flutter run -d <device_id>
 ```
 
 To build a release APK:
@@ -180,48 +296,52 @@ flutter build apk --release
 
 ---
 
-## Data Seeding
-
-On first launch, the app checks whether Firestore contains any curriculum data. If the database is empty, it automatically populates the initial modules, lessons, and quiz questions so the app is usable immediately without any manual data entry.
-
----
-
 ## Testing
 
 ### Running automated tests
 
 ```bash
-flutter test
+flutter test test/
 ```
 
-### Unit tests — `test/unit_test.dart`
+All **117 tests pass** across 6 test files.
 
-Cover the following areas of application logic:
+### Test coverage
 
-- **AppStrings** — confirms the app name and tagline constants are correctly defined
-- **PrefKeys** — checks that all `shared_preferences` key constants are unique, catching key collision bugs at test time rather than runtime
-- **ModuleData** — validates the progress calculation logic, including correct percentage output, protection against division by zero when `totalLessons` is 0, and that all computed values stay within the range [0.0, 1.0]
+```bash
+flutter test test/ --coverage
+```
 
-### Widget tests — `test/widget_test.dart`
+Coverage on testable files (models, auth screens, shared widgets): **71.4%**
 
-Render key screens in a test environment and assert that they display correctly and handle state transitions as expected. Coverage includes the authentication screens, the home dashboard, and quiz screen interactions.
+![Tests Passing](assets/images/screenshots/tests_passing.png)
+![Coverage Report](assets/images/screenshots/coverage_report.jpeg)
+
+### Test files
+
+| File | Tests | What it covers |
+|------|-------|----------------|
+| `test/unit_test.dart` | 8 | AppStrings, PrefKeys, ModuleData constants |
+| `test/model_test.dart` | ~45 | All 7 models — constructors, `toMap`, `copyWith`, getters |
+| `test/models_firestore_test.dart` | 20 | `fromFirestore` factory methods using `fake_cloud_firestore` |
+| `test/auth_service_test.dart` | 11 | `AuthService.friendlyError()` — all Firebase error codes |
+| `test/register_screen_test.dart` | 11 | RegisterScreen UI and form validation |
+| `test/widget_test.dart` | 22 | WelcomeScreen, LoginScreen, RegisterScreen, ForgotPasswordScreen |
 
 ### Manual testing
-
-The following scenarios were tested on physical Android devices and the Android emulator:
 
 | Test Case | Result |
 |-----------|--------|
 | User registration with valid email | PASS |
 | Registration with an email already in use | PASS |
-| Google Sign-In routes to home dashboard | PASS |
+| Google Sign-In routes to correct dashboard | PASS |
 | Login with incorrect password shows error | PASS |
-| Unverified users are blocked from the home screen | PASS |
+| Unverified users blocked from home screen | PASS |
 | Completing a lesson updates progress in Firestore | PASS |
-| Correct quiz answer is highlighted green | PASS |
-| Incorrect quiz answer is highlighted red | PASS |
-| Quiz result is saved to Firestore with correct timestamp | PASS |
-| Admin-added module appears on the student Modules screen immediately | PASS |
+| Correct quiz answer highlighted green | PASS |
+| Incorrect quiz answer highlighted red | PASS |
+| Quiz result saved to Firestore with timestamp | PASS |
+| Admin-added module appears on student screen immediately | PASS |
 | Switching language to Kinyarwanda updates all UI text | PASS |
 | Dark mode toggle persists after app restart | PASS |
 | Admin user cannot access student routes | PASS |
@@ -229,15 +349,31 @@ The following scenarios were tested on physical Android devices and the Android 
 
 ---
 
-## Localization
+## User Preferences
 
-The app supports three languages, selectable from the Settings screen: English, Kinyarwanda, and French. Language preference is stored per user via `shared_preferences` and applied on next launch.
+The following preferences are saved via `shared_preferences` and restored on app relaunch, scoped per user (by Firebase UID):
+
+| Preference | Key | Default |
+|------------|-----|---------|
+| Theme mode (light/dark) | `pref_theme_mode_{uid}` | Light |
+| Language | `pref_language_{uid}` | English |
+| Daily learning goal (minutes) | `pref_daily_goal_minutes_{uid}` | 20 |
+| Offline mode | `pref_offline_mode` | Off |
+| Daily reminders | `pref_daily_reminders` | Off |
+| Reduce data usage | `pref_data_usage_mode` | Off |
 
 ---
 
 ## Security
 
-Firestore security rules are configured so that authenticated users can only read and write their own documents. Role-based routing in GoRouter ensures that students, parents, and admins cannot navigate to each other's screens. The following files contain sensitive credentials and are excluded from version control via `.gitignore`:
+Firestore security rules enforce role-based access:
+
+- **Students** can only read/write their own progress, quiz results, and profile
+- **Parents** can read their linked child's progress and screen time
+- **Admins** can read/write all curriculum content (modules, lessons, quizzes)
+- All write operations require authentication; unauthenticated reads are blocked
+
+Role-based routing in GoRouter ensures students, parents, and admins cannot navigate to each other's screens. The following files contain sensitive credentials and are excluded via `.gitignore`:
 
 - `lib/firebase_options.dart`
 - `lib/core/constants/secrets.dart`
@@ -246,3 +382,14 @@ Firestore security rules are configured so that authenticated users can only rea
 
 ---
 
+## Data Seeding
+
+On first launch, the app checks whether Firestore contains any curriculum data. If the database is empty, it automatically seeds the initial modules, lessons, and quiz questions so the app is usable immediately without manual data entry.
+
+---
+
+## Localization
+
+The app supports three languages selectable from the Settings screen: **English**, **Kinyarwanda**, and **French**. Language preference is stored per user via `shared_preferences` and applied on next launch.
+
+---

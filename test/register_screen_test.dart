@@ -67,7 +67,7 @@ void main() {
       await t.enterText(fields.at(1), 'amina@test.rw');
       await t.enterText(fields.at(2), '123');
       await tapSubmit(t);
-      expect(find.text('Password must be at least 6 characters'), findsOneWidget);
+      expect(find.text('Password must be at least 8 characters'), findsOneWidget);
     });
 
     testWidgets('shows passwords do not match error', (t) async {
