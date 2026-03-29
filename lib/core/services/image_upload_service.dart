@@ -1,49 +1,66 @@
-import 'dart:io';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import '../constants/secrets.dart';
 
 class ImageUploadService {
+  static const _cloudName = Secrets.cloudName;
+  static const _apiKey = Secrets.cloudinaryApiKey;
+  static const _apiSecret = Secrets.cloudinaryApiSecret;
+
   final _picker = ImagePicker();
-  final _storage = FirebaseStorage.instance;
   final _db = FirebaseFirestore.instance;
 
-  /// Picks an image from the gallery, uploads it to Firebase Storage at
-  /// `avatars/{uid}.jpg`, saves the download URL to Firestore, and updates
-  /// Firebase Auth's photoURL.
+  /// Picks an image from the gallery, uploads it to Cloudinary, and saves
+  /// the returned URL to Firestore under `users/{uid}.avatarUrl`.
   ///
-  /// Returns the new download URL, or null if the user cancelled.
-  /// Throws on upload / Firestore errors.
+  /// Returns the secure URL, or null if the user cancelled.
   Future<String?> pickAndUploadAvatar() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return null;
 
-    // Pick from gallery — resize to max 512×512 and compress to 85%
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 512,
       maxHeight: 512,
       imageQuality: 85,
     );
-    if (picked == null) return null; // user cancelled
+    if (picked == null) return null;
 
-    final file = File(picked.path);
-    final ref = _storage.ref().child('avatars/$uid.jpg');
+    final bytes = await picked.readAsBytes();
+    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-    // Upload with content-type so browsers/CDNs serve it correctly
-    await ref.putFile(
-      file,
-      SettableMetadata(contentType: 'image/jpeg'),
-    );
+    // Cloudinary signed-upload signature: SHA-1 of "timestamp=<ts><secret>"
+    final signature = sha1
+        .convert(utf8.encode('timestamp=$timestamp$_apiSecret'))
+        .toString();
 
-    final url = await ref.getDownloadURL();
+    final uri = Uri.parse(
+        'https://api.cloudinary.com/v1_1/$_cloudName/image/upload');
 
-    // Persist URL in both Firestore and Firebase Auth profile
-    await Future.wait([
-      _db.collection('users').doc(uid).update({'avatarUrl': url}),
-      FirebaseAuth.instance.currentUser!.updatePhotoURL(url),
-    ]);
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['api_key'] = _apiKey
+      ..fields['timestamp'] = '$timestamp'
+      ..fields['signature'] = signature
+      ..files.add(http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: 'avatar_$uid.jpg',
+      ));
+
+    final streamed = await request.send();
+    final body = await streamed.stream.bytesToString();
+
+    if (streamed.statusCode != 200) {
+      throw Exception('Cloudinary upload failed: $body');
+    }
+
+    final url = (jsonDecode(body) as Map<String, dynamic>)['secure_url'] as String;
+
+    await _db.collection('users').doc(uid).update({'avatarUrl': url});
 
     return url;
   }
