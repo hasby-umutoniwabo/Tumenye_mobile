@@ -7,6 +7,7 @@ import '../../../../core/providers/firestore_providers.dart';
 import '../../../../core/providers/preferences_providers.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../shared/widgets/icon_box.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 
 class ParentAccountScreen extends ConsumerWidget {
   const ParentAccountScreen({super.key});
@@ -16,7 +17,7 @@ class ParentAccountScreen extends ConsumerWidget {
     final user = FirebaseAuth.instance.currentUser;
     final parentName = user?.displayName ?? user?.email?.split('@').first ?? 'Parent';
     final email = user?.email ?? '';
-    final initial = parentName.isNotEmpty ? parentName[0].toUpperCase() : 'P';
+    final avatarUrl = ref.watch(currentUserStreamProvider).valueOrNull?.avatarUrl;
 
     final childrenAsync = ref.watch(linkedChildrenProvider);
     final reminders = ref.watch(remindersProvider);
@@ -50,18 +51,10 @@ class ParentAccountScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: context.borderColor)),
                 child: Row(children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: const BoxDecoration(
-                        color: AppColors.accentOrange, shape: BoxShape.circle),
-                    child: Center(
-                      child: Text(initial,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800)),
-                    ),
+                  UserAvatar(
+                    name: parentName,
+                    avatarUrl: avatarUrl,
+                    size: 60,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -141,21 +134,10 @@ class ParentAccountScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: context.borderColor)),
                       child: Row(children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: const BoxDecoration(
-                              color: AppColors.accentOrange,
-                              shape: BoxShape.circle),
-                          child: Center(
-                            child: Text(
-                              name[0].toUpperCase(),
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                          ),
+                        UserAvatar(
+                          name: name,
+                          avatarUrl: child.avatarUrl,
+                          size: 38,
                         ),
                         const SizedBox(width: 12),
                         Expanded(

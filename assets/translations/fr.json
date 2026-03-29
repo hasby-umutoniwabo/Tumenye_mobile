@@ -1,0 +1,193 @@
+{
+  "common": {
+    "continue": "Continuer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "signOut": "Se Déconnecter",
+    "signOutTitle": "Déconnexion",
+    "signOutConfirm": "Voulez-vous vraiment vous déconnecter?",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "viewAll": "Voir tout",
+    "back": "Retour",
+    "link": "Lier",
+    "unlink": "Délier",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "auth": {
+    "welcome": {
+      "title": "Ouvrez Votre\nAvenir Numérique",
+      "subtitle": "Apprenez MS Office, la Sécurité Internet et les Compétences Numériques en Kinyarwanda",
+      "getStarted": "Commencer",
+      "login": "Se Connecter"
+    },
+    "login": {
+      "title": "Bon Retour",
+      "subtitle": "Connectez-vous pour continuer à apprendre",
+      "email": "Adresse email",
+      "password": "Mot de passe",
+      "submit": "Se Connecter",
+      "google": "Continuer avec Google",
+      "noAccount": "Vous n'avez pas de compte?",
+      "register": "S'inscrire"
+    },
+    "register": {
+      "title": "Créer un Compte",
+      "subtitle": "Rejoignez des milliers d'apprenants numériques",
+      "name": "Nom complet",
+      "email": "Adresse email",
+      "password": "Mot de passe (min. 6 caractères)",
+      "role": "Je suis un",
+      "roleStudent": "Étudiant",
+      "roleParent": "Parent",
+      "submit": "Créer un Compte",
+      "hasAccount": "Vous avez déjà un compte?",
+      "signIn": "Se Connecter"
+    }
+  },
+  "home": {
+    "greeting": "Bonjour, {name}! 👋",
+    "subtitle": "Prêt à apprendre?",
+    "currentModule": "MODULE ACTUEL",
+    "continue": "Continuer →",
+    "quickAccess": "Accès Rapide",
+    "library": "Bibliothèque",
+    "achievements": "Réalisations",
+    "latestBadge": "Dernier Badge",
+    "nextTopic": "PROCHAIN SUJET",
+    "dailyGoal": "Objectif Quotidien",
+    "goalReached": "Objectif atteint! 🎉",
+    "almostThere": "Presque là! 🔥",
+    "minLeft": "{count} min restantes",
+    "minutes": "{count} minutes d'apprentissage"
+  },
+  "modules": {
+    "title": "Mes Modules",
+    "progress": "{done}/{total} leçons",
+    "completed": "Terminé",
+    "start": "Commencer",
+    "resume": "Reprendre",
+    "difficulty": {
+      "Beginner": "Débutant",
+      "Intermediate": "Intermédiaire",
+      "Advanced": "Avancé"
+    }
+  },
+  "lesson": {
+    "translation": "Kinyarwanda",
+    "showTranslation": "Afficher la Traduction",
+    "hideTranslation": "Masquer la Traduction",
+    "complete": "Marquer comme Terminé",
+    "next": "Leçon Suivante",
+    "quiz": "Faire le Quiz",
+    "estimatedTime": "{count} min de lecture"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "question": "Question {current} sur {total}",
+    "submit": "Soumettre la Réponse",
+    "next": "Question Suivante",
+    "result": {
+      "passed": "Félicitations! Vous avez réussi! 🎉",
+      "failed": "Continuez à Pratiquer!",
+      "score": "Vous avez obtenu {score} sur {total}",
+      "passScore": "Score de réussite: {score}%"
+    },
+    "backToModules": "Retour aux Modules",
+    "tryAgain": "Réessayer"
+  },
+  "notifications": {
+    "title": "Mes Notifications",
+    "all": "Tout",
+    "achievements": "Réalisations",
+    "reminders": "Rappels",
+    "empty": "Aucune notification {filter}",
+    "emptySubtitle": "Terminez des leçons et des quiz pour gagner des réalisations!",
+    "quizPassed": "Quiz Réussi",
+    "quizAttempt": "Tentative de Quiz",
+    "moduleCompleted": "Module Terminé!",
+    "dailyReminder": "Rappel Quotidien",
+    "safetyTip": "Conseil de Sécurité"
+  },
+  "achievements": {
+    "title": "Mes Réalisations",
+    "moduleProgress": "Progression des Modules",
+    "quizResults": "Résultats des Quiz",
+    "earnedBadges": "Badges Gagnés",
+    "lessonsCount": "{done} / {total} Leçons Terminées",
+    "keepLearning": "Continuer à Apprendre",
+    "noProgress": "Commencez un module pour suivre votre progression.",
+    "badges": {
+      "wordMaster": "Maître Word",
+      "excelGuru": "Gourou Excel",
+      "emailPro": "Pro Email",
+      "safetyHero": "Héros Sécurité",
+      "perfectScore": "Score Parfait",
+      "allModules": "Tous les Modules"
+    }
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "resumeLesson": "Reprendre la Leçon",
+    "offlineBanner": "Vous êtes en mode hors ligne",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "reminders": "Rappels Quotidiens",
+    "offlineMode": "Mode Hors Ligne"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "student": "Étudiant en Littératie Numérique",
+    "appearance": "Apparence",
+    "darkMode": "Mode Sombre",
+    "connectionStorage": "Connexion et Stockage",
+    "offlineDownloads": "Téléchargements Hors Ligne",
+    "offlineSubtitle": "Enregistrez des leçons pour étudier sans internet",
+    "dataUsage": "Mode Économie de Données",
+    "dataUsageSubtitle": "Utilisez moins de données en réduisant la qualité vidéo",
+    "personalization": "Personnalisation",
+    "reminders": "Rappels Quotidiens",
+    "language": "Langue",
+    "dailyGoal": "Objectif d'Apprentissage Quotidien",
+    "dailyGoalSubtitle": "{minutes} minutes par jour",
+    "selectLanguage": "Sélectionner la Langue",
+    "selectGoal": "Objectif d'Apprentissage Quotidien",
+    "selectGoalSubtitle": "Combien de minutes voulez-vous apprendre chaque jour?",
+    "minutes": "{count} minutes",
+    "support": "Assistance",
+    "helpCenter": "Centre d'Aide",
+    "about": "À Propos de l'App",
+    "version": "Version 2.4.0 (Rwanda Éducation Numérique)"
+  },
+  "parent": {
+    "dashboard": "Tableau de Bord Parent",
+    "yourChildren": "Vos Enfants",
+    "lastActive": "Dernière activité {time}",
+    "noActivity": "Aucune activité",
+    "noChildren": "Aucun enfant lié",
+    "linkChild": "Lier le Compte de Votre Enfant",
+    "linkChildSubtitle": "Entrez l'email du compte Tumenye de votre enfant pour surveiller sa progression.",
+    "childEmail": "Adresse email de l'enfant",
+    "linkAccount": "Lier le Compte de l'Enfant",
+    "linking": "Liaison en cours…",
+    "linkAnother": "Lier un autre enfant",
+    "overall": "global",
+    "lessons": "Leçons",
+    "quizzesPassed": "Quiz\nRéussis",
+    "modulesDone": "Modules\nTerminés",
+    "activity": "Activité",
+    "account": "Compte",
+    "home": "Accueil",
+    "childLinked": "Enfant Lié",
+    "childrenLinked": "Enfants Liés",
+    "avgProgress": "Progression Moy.",
+    "moduleDone": "Module Terminé",
+    "modulesDonePlural": "Modules Terminés"
+  },
+  "admin": {
+    "dashboard": "Tableau de Bord Admin",
+    "students": "Étudiants",
+    "curriculum": "Programme"
+  }
+}

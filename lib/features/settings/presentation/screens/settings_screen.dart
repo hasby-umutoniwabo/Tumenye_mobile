@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,8 +18,10 @@ class SettingsScreen extends ConsumerWidget {
     final data = ref.watch(dataUsageProvider);
     final reminders = ref.watch(remindersProvider);
     final lang = ref.watch(languageProvider);
+    final dailyGoal = ref.watch(dailyGoalProvider);
     final user = ref.watch(currentUserStreamProvider).valueOrNull;
     final displayName = user?.name ?? 'Student';
+    final avatarUrl = user?.avatarUrl;
 
     return Scaffold(
       backgroundColor: context.bgColor,
@@ -31,7 +35,7 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () => context.go(AppRoutes.home),
                 child: const Icon(Icons.arrow_back_ios_new, size: 20)),
             const Spacer(),
-            Text('Settings',
+            Text('settings.title'.tr(),
                 style: Theme.of(context).textTheme.headlineSmall),
             const Spacer(),
             const SizedBox(width: 20),
@@ -55,16 +59,34 @@ class SettingsScreen extends ConsumerWidget {
                     decoration: const BoxDecoration(
                         color: AppColors.accentOrange,
                         shape: BoxShape.circle),
-                    child: Center(
-                      child: Text(
-                        displayName.isNotEmpty
-                            ? displayName[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800),
-                      ),
+                    child: ClipOval(
+                      child: avatarUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: avatarUrl,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) => Center(
+                                child: Text(
+                                  displayName.isNotEmpty
+                                      ? displayName[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            )
+                          : Center(
+                              child: Text(
+                                displayName.isNotEmpty
+                                    ? displayName[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800),
+                              ),
+                            ),
                     )),
                 const SizedBox(width: 12),
                 Expanded(
@@ -76,7 +98,7 @@ class SettingsScreen extends ConsumerWidget {
                               .textTheme
                               .bodyLarge
                               ?.copyWith(fontWeight: FontWeight.w700)),
-                      Text('Digital Literacy Student',
+                      Text('settings.student'.tr(),
                           style: Theme.of(context).textTheme.bodySmall),
                     ])),
                 const Icon(Icons.chevron_right,
@@ -86,14 +108,14 @@ class SettingsScreen extends ConsumerWidget {
           ),
         )),
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
-        const _Label('Appearance'),
+        _Label('settings.appearance'.tr()),
         _Card([
           SwitchListTile(
               secondary: IconBox(
                   icon: isDark ? Icons.dark_mode : Icons.light_mode,
                   color: AppColors.accentPurple),
-              title: const Text('Dark Mode',
-                  style: TextStyle(
+              title: Text('settings.darkMode'.tr(),
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               value: isDark,
               onChanged: (_) =>
@@ -102,17 +124,16 @@ class SettingsScreen extends ConsumerWidget {
               activeTrackColor: AppColors.primary),
         ]),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        const _Label('Connection & Storage'),
+        _Label('settings.connectionStorage'.tr()),
         _Card([
           SwitchListTile(
               secondary: const IconBox(
                   icon: Icons.download_outlined, color: AppColors.primary),
-              title: const Text('Offline Downloads',
-                  style: TextStyle(
+              title: Text('settings.offlineDownloads'.tr(),
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
-              subtitle: const Text(
-                  'Save lessons to study without internet',
-                  style: TextStyle(fontSize: 12)),
+              subtitle: Text('settings.offlineSubtitle'.tr(),
+                  style: const TextStyle(fontSize: 12)),
               value: offline,
               onChanged: (_) =>
                   ref.read(offlineModeProvider.notifier).toggle(),
@@ -122,12 +143,11 @@ class SettingsScreen extends ConsumerWidget {
           SwitchListTile(
               secondary: const IconBox(
                   icon: Icons.data_usage, color: AppColors.accentBlue),
-              title: const Text('Data Usage Mode',
-                  style: TextStyle(
+              title: Text('settings.dataUsage'.tr(),
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
-              subtitle: const Text(
-                  'Use less data by lowering video quality',
-                  style: TextStyle(fontSize: 12)),
+              subtitle: Text('settings.dataUsageSubtitle'.tr(),
+                  style: const TextStyle(fontSize: 12)),
               value: data,
               onChanged: (_) =>
                   ref.read(dataUsageProvider.notifier).toggle(),
@@ -135,14 +155,14 @@ class SettingsScreen extends ConsumerWidget {
               activeTrackColor: AppColors.primary),
         ]),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        const _Label('Personalization'),
+        _Label('settings.personalization'.tr()),
         _Card([
           SwitchListTile(
               secondary: const IconBox(
                   icon: Icons.notifications_outlined,
                   color: AppColors.accentOrange),
-              title: const Text('Daily Reminders',
-                  style: TextStyle(
+              title: Text('settings.reminders'.tr(),
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               value: reminders,
               onChanged: (_) =>
@@ -153,24 +173,36 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
               leading: const IconBox(
                   icon: Icons.language, color: AppColors.accentCyan),
-              title: const Text('Language',
-                  style: TextStyle(
+              title: Text('settings.language'.tr(),
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               subtitle: Text(lang,
                   style: const TextStyle(fontSize: 12)),
               trailing: const Icon(Icons.chevron_right,
                   color: AppColors.textHint),
               onTap: () => _showLangPicker(context, ref, lang)),
+          const Divider(height: 1, indent: 60, endIndent: 16),
+          ListTile(
+              leading: const IconBox(
+                  icon: Icons.timer_outlined, color: AppColors.accentOrange),
+              title: Text('settings.dailyGoal'.tr(),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600)),
+              subtitle: Text('settings.dailyGoalSubtitle'.tr(namedArgs: {'minutes': '$dailyGoal'}),
+                  style: const TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right,
+                  color: AppColors.textHint),
+              onTap: () => _showGoalPicker(context, ref, dailyGoal)),
         ]),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        const _Label('Support'),
+        _Label('settings.support'.tr()),
         _Card([
           ListTile(
               leading: const IconBox(
                   icon: Icons.help_outline,
                   color: AppColors.accentPurple),
-              title: const Text('Help Center',
-                  style: TextStyle(
+              title: Text('settings.helpCenter'.tr(),
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               trailing: const Icon(Icons.chevron_right,
                   color: AppColors.textHint),
@@ -180,8 +212,8 @@ class SettingsScreen extends ConsumerWidget {
               leading: IconBox(
                   icon: Icons.info_outline,
                   color: context.textSecondaryColor),
-              title: const Text('About the App',
-                  style: TextStyle(
+              title: Text('settings.about'.tr(),
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               trailing: const Icon(Icons.chevron_right,
                   color: AppColors.textHint),
@@ -197,13 +229,12 @@ class SettingsScreen extends ConsumerWidget {
                     builder: (ctx) => AlertDialog(
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16)),
-                          title: const Text('Sign Out'),
-                          content:
-                              const Text('Are you sure you want to sign out?'),
+                          title: Text('common.signOutTitle'.tr()),
+                          content: Text('common.signOutConfirm'.tr()),
                           actions: [
                             TextButton(
                                 onPressed: () => Navigator.pop(ctx),
-                                child: const Text('Cancel')),
+                                child: Text('common.cancel'.tr())),
                             ElevatedButton(
                                 onPressed: () async {
                                   Navigator.pop(ctx);
@@ -213,14 +244,14 @@ class SettingsScreen extends ConsumerWidget {
                                 },
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.accentRed),
-                                child: const Text('Sign Out')),
+                                child: Text('common.signOut'.tr())),
                           ],
                         ),
                   ),
               icon: const Icon(Icons.logout,
                   size: 16, color: AppColors.accentRed),
-              label: const Text('Sign Out',
-                  style: TextStyle(color: AppColors.accentRed)),
+              label: Text('common.signOut'.tr(),
+                  style: const TextStyle(color: AppColors.accentRed)),
               style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
                   side: const BorderSide(color: AppColors.accentRed),
@@ -231,12 +262,53 @@ class SettingsScreen extends ConsumerWidget {
             child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Center(
-              child: Text('Version 2.4.0 (Rwanda Digital Ed)',
+              child: Text('settings.version'.tr(),
                   style: Theme.of(context).textTheme.bodySmall)),
         )),
         const SliverToBoxAdapter(child: SizedBox(height: 32)),
       ])),
     );
+  }
+
+  void _showGoalPicker(BuildContext context, WidgetRef ref, int current) {
+    const options = [15, 20, 30, 45, 60];
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: context.bgColor,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        builder: (ctx) => Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('settings.selectGoal'.tr(),
+                        style: Theme.of(context).textTheme.headlineSmall),
+                    const SizedBox(height: 6),
+                    Text('settings.selectGoalSubtitle'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 16),
+                    for (final mins in options)
+                      ListTile(
+                          title: Text('settings.minutes'.tr(namedArgs: {'count': '$mins'})),
+                          trailing: mins == current
+                              ? const Icon(Icons.check, color: AppColors.primary)
+                              : null,
+                          onTap: () {
+                            ref.read(dailyGoalProvider.notifier).set(mins);
+                            Navigator.pop(ctx);
+                          }),
+                  ]),
+            ));
+  }
+
+  Locale _localeFor(String lang) {
+    switch (lang) {
+      case 'Kinyarwanda': return const Locale('rw');
+      case 'French': return const Locale('fr');
+      default: return const Locale('en');
+    }
   }
 
   void _showLangPicker(
@@ -253,7 +325,7 @@ class SettingsScreen extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Select Language',
+                    Text('settings.selectLanguage'.tr(),
                         style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 16),
                     for (final l in ['English', 'Kinyarwanda', 'French'])
@@ -265,6 +337,7 @@ class SettingsScreen extends ConsumerWidget {
                               : null,
                           onTap: () {
                             ref.read(languageProvider.notifier).set(l);
+                            context.setLocale(_localeFor(l));
                             Navigator.pop(ctx);
                           }),
                   ]),
@@ -274,7 +347,8 @@ class SettingsScreen extends ConsumerWidget {
 
 class _Label extends StatelessWidget {
   final String text;
-  const _Label(this.text);
+  // ignore: prefer_const_constructors_in_immutables
+  _Label(this.text);
   @override
   Widget build(BuildContext context) => SliverToBoxAdapter(
           child: Padding(
