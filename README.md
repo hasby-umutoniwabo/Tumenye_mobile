@@ -2,8 +2,6 @@
 
 Tumenye is a cross-platform mobile application built with Flutter and Firebase. It is designed to help Rwandan students aged 8–18 build practical digital skills through structured, interactive lessons covering Word Processing, Spreadsheets, Email Communication, and Online Safety. The app runs on Android and iOS from a single codebase and supports English, Kinyarwanda, and French.
 
-> African Leadership University — Software Engineering Final Project, March 2025
-
 ---
 
 
