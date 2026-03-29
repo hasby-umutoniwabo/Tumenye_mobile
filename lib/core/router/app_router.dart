@@ -107,6 +107,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         if (needsVerification && !onVerifyRoute) {
           return AppRoutes.emailVerification;
         }
+        // Unverified user already on the verification screen → stay put
+        if (needsVerification) return null;
 
         final userAsync = ref.read(currentUserStreamProvider);
 

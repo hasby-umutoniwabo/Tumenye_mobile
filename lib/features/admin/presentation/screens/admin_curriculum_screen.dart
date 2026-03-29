@@ -172,10 +172,13 @@ class _ModuleCard extends ConsumerWidget {
                               color: color)),
                     ),
                     const SizedBox(width: 8),
-                    Text('${module.totalLessons} lessons',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: context.textSecondaryColor)),
+                    Flexible(
+                      child: Text('${module.totalLessons} lessons',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: context.textSecondaryColor)),
+                    ),
                   ]),
                 ]),
               ),
