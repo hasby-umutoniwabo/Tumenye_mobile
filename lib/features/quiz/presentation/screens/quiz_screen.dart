@@ -120,6 +120,15 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               return const Center(child: Text('No quiz available.'));
             }
             final questions = quiz.questions;
+            // Guard: _qi can go out of bounds if the quiz data refreshes
+            // (e.g. auth token renewal causes quizProvider to re-fetch)
+            // mid-session with fewer questions than before.
+            if (_qi >= questions.length) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() { _qi = 0; _sel = null; _answered = false; });
+              });
+              return const Center(child: CircularProgressIndicator());
+            }
             final q = questions[_qi];
 
             return Column(children: [

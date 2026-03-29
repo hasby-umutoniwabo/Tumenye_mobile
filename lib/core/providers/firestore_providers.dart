@@ -8,6 +8,7 @@ import '../models/progress_model.dart';
 import '../models/quiz_result_model.dart';
 import '../models/activity_model.dart';
 import '../models/user_model.dart';
+import 'auth_provider.dart';
 
 final firestoreServiceProvider =
     Provider<FirestoreService>((ref) => FirestoreService());
@@ -15,6 +16,8 @@ final firestoreServiceProvider =
 // ─── Modules ──────────────────────────────────────────────────────────────────
 
 final modulesProvider = StreamProvider<List<ModuleModel>>((ref) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return const Stream.empty();
   return ref.watch(firestoreServiceProvider).getModules();
 });
 
@@ -22,6 +25,8 @@ final modulesProvider = StreamProvider<List<ModuleModel>>((ref) {
 
 final lessonsProvider =
     StreamProvider.family<List<LessonModel>, String>((ref, moduleId) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return const Stream.empty();
   return ref.watch(firestoreServiceProvider).streamLessonsForModule(moduleId);
 });
 
@@ -29,6 +34,8 @@ final lessonsProvider =
 
 final quizProvider =
     FutureProvider.family<QuizModel?, String>((ref, lessonId) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return Future.value(null);
   return ref.watch(firestoreServiceProvider).getQuizForLesson(lessonId);
 });
 
@@ -53,18 +60,26 @@ final moduleProgressProvider =
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
 final allStudentsProvider = StreamProvider<List<UserModel>>((ref) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return const Stream.empty();
   return ref.watch(firestoreServiceProvider).getAllStudents();
 });
 
 final studentCountProvider = StreamProvider<int>((ref) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return const Stream.empty();
   return ref.watch(firestoreServiceProvider).watchStudentCount();
 });
 
 final lessonCountProvider = FutureProvider<int>((ref) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return Future.value(0);
   return ref.watch(firestoreServiceProvider).getLessonCount();
 });
 
 final recentActivityProvider = StreamProvider<List<ActivityModel>>((ref) {
+  final user = ref.watch(authStateProvider).valueOrNull;
+  if (user == null) return const Stream.empty();
   return ref.watch(firestoreServiceProvider).getRecentActivity();
 });
 
