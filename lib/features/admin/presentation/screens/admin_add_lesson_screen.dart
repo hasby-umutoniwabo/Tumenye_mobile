@@ -109,9 +109,9 @@ class _AdminAddLessonScreenState extends ConsumerState<AdminAddLessonScreen> {
     final modules = ref.watch(modulesProvider).value ?? [];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.bgColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -142,12 +142,12 @@ class _AdminAddLessonScreenState extends ConsumerState<AdminAddLessonScreen> {
           children: [
             // Module selector
             if (!_isEdit) ...[
-              const Text('MODULE',
+              Text('MODULE',
                   style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.8,
-                      color: AppColors.textSecondary)),
+                      color: context.textSecondaryColor)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _selectedModuleId,
@@ -271,19 +271,16 @@ class _AdminAddLessonScreenState extends ConsumerState<AdminAddLessonScreen> {
   }
 
   Widget _label(String text) => Text(text,
-      style: const TextStyle(
+      style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.8,
-          color: AppColors.textSecondary));
+          color: context.textSecondaryColor));
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         hintText: hint,
         border:
             OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border)),
         contentPadding: const EdgeInsets.symmetric(
             horizontal: 14, vertical: 12),
       );

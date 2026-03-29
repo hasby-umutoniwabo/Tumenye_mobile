@@ -112,9 +112,9 @@ class _AdminAddQuizScreenState extends ConsumerState<AdminAddQuizScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.bgColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -172,11 +172,11 @@ class _AdminAddQuizScreenState extends ConsumerState<AdminAddQuizScreen> {
             // ── Questions ──────────────────────────────────────────────
             Row(children: [
               Text('QUESTIONS',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.8,
-                      color: AppColors.textSecondary)),
+                      color: context.textSecondaryColor)),
               const Spacer(),
               TextButton.icon(
                 onPressed: () => setState(() => _questions.add(_QuestionDraft())),
@@ -225,18 +225,15 @@ class _AdminAddQuizScreenState extends ConsumerState<AdminAddQuizScreen> {
   }
 
   Widget _label(String text) => Text(text,
-      style: const TextStyle(
+      style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.8,
-          color: AppColors.textSecondary));
+          color: context.textSecondaryColor));
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         hintText: hint,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       );
@@ -292,9 +289,6 @@ class _QuestionEditor extends StatelessWidget {
         hintText: hint,
         isDense: true,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: AppColors.border)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       );
@@ -305,7 +299,7 @@ class _QuestionEditor extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(14)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // Header
@@ -359,7 +353,7 @@ class _QuestionEditor extends StatelessWidget {
                     border: Border.all(
                       color: draft.correctIndex == i
                           ? AppColors.primary
-                          : AppColors.border,
+                          : context.borderColor,
                       width: 2,
                     ),
                   ),

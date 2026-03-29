@@ -61,10 +61,10 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
               prefixIcon: const Icon(Icons.search, size: 20),
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border)),
+                  borderSide: BorderSide(color: context.borderColor)),
               enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.border)),
+                  borderSide: BorderSide(color: context.borderColor)),
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
             ),
             onChanged: (v) => setState(() => _search = v.toLowerCase()),
@@ -100,8 +100,8 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
                           _search.isEmpty
                               ? 'No students registered yet.'
                               : 'No students match "$_search".',
-                          style: const TextStyle(
-                              color: AppColors.textSecondary)),
+                          style: TextStyle(
+                              color: context.textSecondaryColor)),
                     ],
                   ),
                 );
@@ -146,7 +146,7 @@ class _StudentCard extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.cardColor,
             borderRadius: BorderRadius.circular(14)),
         child: Row(children: [
           // Avatar
@@ -179,8 +179,8 @@ class _StudentCard extends ConsumerWidget {
                       fontSize: 14, fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
               Text(student.email,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 12, color: context.textSecondaryColor)),
               const SizedBox(height: 6),
               Row(children: [
                 Expanded(
@@ -189,7 +189,7 @@ class _StudentCard extends ConsumerWidget {
                     child: LinearProgressIndicator(
                       value: pct / 100,
                       minHeight: 5,
-                      backgroundColor: AppColors.border,
+                      backgroundColor: context.borderColor,
                       valueColor: const AlwaysStoppedAnimation(
                           AppColors.accentBlue),
                     ),
@@ -212,9 +212,9 @@ class _StudentCard extends ConsumerWidget {
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primary)),
-            const Text('modules',
+            Text('modules',
                 style: TextStyle(
-                    fontSize: 10, color: AppColors.textSecondary)),
+                    fontSize: 10, color: context.textSecondaryColor)),
           ]),
           const SizedBox(width: 4),
           const Icon(Icons.chevron_right,

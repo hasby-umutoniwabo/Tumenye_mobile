@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/firestore_providers.dart';
 import '../../../../core/models/module_model.dart';
 import '../../../../core/models/user_model.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 
 class AdminStudentDetailScreen extends ConsumerWidget {
   final String studentUid;
@@ -35,7 +36,7 @@ class AdminStudentDetailScreen extends ConsumerWidget {
     final email = student?.email ?? '';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.bgColor,
       body: SafeArea(
         child: CustomScrollView(slivers: [
           // ── Header ──────────────────────────────────────────────────
@@ -63,23 +64,14 @@ class AdminStudentDetailScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.cardColor,
                     borderRadius: BorderRadius.circular(16)),
                 child: Column(children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: const BoxDecoration(
-                        color: AppColors.accentBlue, shape: BoxShape.circle),
-                    child: Center(
-                      child: Text(
-                        name[0].toUpperCase(),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800),
-                      ),
-                    ),
+                  UserAvatar(
+                    name: name,
+                    avatarUrl: student?.avatarUrl,
+                    size: 72,
+                    fallbackColor: AppColors.accentBlue,
                   ),
                   const SizedBox(height: 12),
                   Text(name,
@@ -88,8 +80,8 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                           .headlineSmall),
                   const SizedBox(height: 4),
                   Text(email,
-                      style: const TextStyle(
-                          fontSize: 13, color: AppColors.textSecondary)),
+                      style: TextStyle(
+                          fontSize: 13, color: context.textSecondaryColor)),
                   const SizedBox(height: 16),
                   // Stats row
                   Row(
@@ -121,11 +113,11 @@ class AdminStudentDetailScreen extends ConsumerWidget {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           if (progressList.isEmpty)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text('No lessons started yet.',
-                    style: TextStyle(color: AppColors.textSecondary)),
+                    style: TextStyle(color: context.textSecondaryColor)),
               ),
             )
           else
@@ -139,7 +131,7 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: context.cardColor,
                           borderRadius: BorderRadius.circular(14)),
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,16 +166,16 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(4),
                               child: LinearProgressIndicator(
-                                value: p.percent / 100,
+                                value: p.percent,
                                 minHeight: 7,
-                                backgroundColor: AppColors.border,
+                                backgroundColor: context.borderColor,
                                 valueColor: AlwaysStoppedAnimation(
                                     _moduleColor(p.moduleId, modules)),
                               ),
                             ),
                           ),
                           const SizedBox(width: 10),
-                          Text('${p.percent.toInt()}%',
+                          Text('${(p.percent * 100).toInt()}%',
                               style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
@@ -192,9 +184,9 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                             '${p.completedLessons} of ${p.totalLessons} lessons completed',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 11,
-                                color: AppColors.textSecondary)),
+                                color: context.textSecondaryColor)),
                       ]),
                     );
                   },
@@ -217,11 +209,11 @@ class AdminStudentDetailScreen extends ConsumerWidget {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           if (quizResults.isEmpty)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text('No quizzes attempted yet.',
-                    style: TextStyle(color: AppColors.textSecondary)),
+                    style: TextStyle(color: context.textSecondaryColor)),
               ),
             )
           else
@@ -236,7 +228,7 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: context.cardColor,
                           borderRadius: BorderRadius.circular(12)),
                       child: Row(children: [
                         Icon(
@@ -257,9 +249,9 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600)),
                             Text(_moduleTitle(r.moduleId, modules),
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.textSecondary)),
+                                    color: context.textSecondaryColor)),
                           ]),
                         ),
                         Text('${r.score}/${r.total}',
@@ -271,9 +263,9 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                                     : AppColors.accentRed)),
                         const SizedBox(width: 6),
                         Text('${(r.percent * 100).toInt()}%',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 11,
-                                color: AppColors.textSecondary)),
+                                color: context.textSecondaryColor)),
                       ]),
                     );
                   },
@@ -333,7 +325,7 @@ class _StatChip extends StatelessWidget {
                 color: color)),
         const SizedBox(height: 2),
         Text(label,
-            style: const TextStyle(
-                fontSize: 11, color: AppColors.textSecondary)),
+            style: TextStyle(
+                fontSize: 11, color: context.textSecondaryColor)),
       ]);
 }
