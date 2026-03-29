@@ -1,35 +1,11 @@
 # Tumenye
 
-*"Let Us Know"* — A digital literacy app for Rwandan students.
-
 Tumenye is a cross-platform mobile application built with Flutter and Firebase. It is designed to help Rwandan students aged 8–18 build practical digital skills through structured, interactive lessons covering Word Processing, Spreadsheets, Email Communication, and Online Safety. The app runs on Android and iOS from a single codebase and supports English, Kinyarwanda, and French.
 
 > African Leadership University — Software Engineering Final Project, March 2025
 
 ---
 
-## Links
-
-| Resource | URL |
-|----------|-----|
-| GitHub Repository | https://github.com/hasby-umutoniwabo/Tumenye_mobile |
-| Figma Design | https://www.figma.com/design/gTV2JZNI6MKrwgracUvlxd/Tumenye-App-org |
-| Figma Prototype | https://www.figma.com/proto/gTV2JZNI6MKrwgracUvlxd/Tumenye-App-org?node-id=36-2 |
-| Demo Video | https://drive.google.com/file/d/1uNyTfVxVSP-y1qVVH-T3_oK0T959WcvY/view |
-
----
-
-## Team
-
-| Name | Contribution |
-|------|--------------|
-| Shem Kirochi Ayioka | Firebase Authentication, onboarding screens, GitHub version control |
-| Kessy Songa Gaju | Lesson modules, Firestore data integration, user research |
-| Julie Isaro | Quiz functionality, progress tracking, unit tests |
-| Tresor Shingiro Nkurunziza | Offline mode (Hive), push notifications, presentation |
-| Hasbiyallah Umutoniwabo | User profile, Firestore security rules, CI workflow, documentation |
-
----
 
 ## Features
 
@@ -272,15 +248,3 @@ Firestore security rules are configured so that authenticated users can only rea
 
 ---
 
-## Planned Improvements
-
-- Additional curriculum modules covering Internet Browsing, Google Workspace tools, and Cybersecurity basics
-- Expanded offline caching for students in areas with limited or unreliable connectivity
-- Push notifications for daily learning reminders and parent alerts on key milestones
-- Publication to the Google Play Store and Apple App Store
-
----
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
