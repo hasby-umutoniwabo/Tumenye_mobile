@@ -345,6 +345,9 @@ class _QuickAccess extends StatelessWidget {
           const SizedBox(width: 12),
           _QBtn(Icons.emoji_events_outlined, 'Achievements',
               AppColors.accentOrange, () => context.push(AppRoutes.achievements)),
+          const SizedBox(width: 12),
+          _QBtn(Icons.history_outlined, 'Quiz History',
+              AppColors.accentPurple, () => context.push(AppRoutes.quizHistory)),
         ]),
       ]),
     );
