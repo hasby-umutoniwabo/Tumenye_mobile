@@ -11,6 +11,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/lesson/presentation/screens/lesson_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_screen.dart';
+import '../../features/quiz/presentation/screens/quiz_history_screen.dart';
 import '../../features/achievements/presentation/screens/achievements_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/parent/presentation/screens/parent_dashboard_screen.dart';
@@ -57,6 +58,7 @@ abstract class AppRoutes {
   static const adminAddModule = '/admin/add-module';
   static const emailVerification = '/email-verification';
   static const forgotPassword = '/forgot-password';
+  static const quizHistory = '/quiz-history';
 }
 
 const _authRoutes = {
@@ -257,6 +259,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (_, __) => const ForgotPasswordScreen(),
+      ),
+      // Quiz history — no bottom nav
+      GoRoute(
+        path: AppRoutes.quizHistory,
+        builder: (_, __) => const QuizHistoryScreen(),
       ),
     ],
   );
